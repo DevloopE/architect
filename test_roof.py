@@ -74,15 +74,16 @@ async def main():
     roof_id = r.get("nodeId")
     print(f"  RoofNode: {roof_id}")
 
+    WALL_H = 2.8  # Must match building wall height
     await b.cmd("create_node", node={
         "type": "roof-segment",
         "roofType": "gable",
-        "position": [0, 0, 0],  # Local, centered in parent
+        "position": [0, 0, 0],
         "rotation": 0,
         "width": 12,
         "depth": 8,
-        "wallHeight": 0.5,
-        "roofHeight": 2.5,
+        "wallHeight": WALL_H,     # Roof walls rise to same height as building walls
+        "roofHeight": 1.5,        # Peak extends 1.5m above the walls
         "wallThickness": 0.1,
         "deckThickness": 0.1,
         "overhang": 0.3,
