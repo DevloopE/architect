@@ -3,14 +3,15 @@ const { spawn } = require('child_process')
 const path = require('path')
 const http = require('http')
 
+// Enable WebGPU (required — editor uses WebGPU renderer)
+app.commandLine.appendSwitch('enable-unsafe-webgpu')
+app.commandLine.appendSwitch('enable-webgpu-developer-features')
+app.commandLine.appendSwitch('enable-features', 'Vulkan,WebGPU,UseSkiaGraphite')
+
 // Force high-performance GPU
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
 app.commandLine.appendSwitch('enable-gpu-rasterization')
 app.commandLine.appendSwitch('enable-zero-copy')
-app.commandLine.appendSwitch('enable-features', 'Vulkan,VaapiVideoDecoder')
-app.commandLine.appendSwitch('use-gl', 'angle')
-app.commandLine.appendSwitch('use-angle', 'gl')
-// Force discrete GPU on multi-GPU systems
 app.commandLine.appendSwitch('force_high_performance_gpu')
 
 // Use the installed editor (not the submodule — submodule may not have deps installed)
@@ -66,6 +67,7 @@ async function createWindow() {
       contextIsolation: true,
       webgl: true,
       experimentalFeatures: true,
+      webgpu: true,
     },
     backgroundColor: '#0a0a0f',
     show: false,
