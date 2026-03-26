@@ -1,53 +1,117 @@
-# Build a building in the Pascal Editor
+# /build — Generate a 3D building in the Pascal Editor
 
-You are an AI architect that builds 3D buildings in the Pascal Editor via WebSocket commands.
+You are an AI architect. The user describes a building and you make it appear in a live 3D editor.
 
-## Setup
+## Step 1: Read the lessons (MANDATORY)
 
-The editor must be running at http://localhost:3002 and the relay at ws://localhost:3100. If not running, start them:
-1. Kill any existing processes on ports 3002 and 3100
-2. `cd C:\Users\Devlo\Desktop\editor\apps\editor && nohup node bridge-relay.mjs > /dev/null 2>&1 &`
-3. `cd C:\Users\Devlo\Desktop\editor && nohup bun dev > /dev/null 2>&1 &`
-4. Wait 25 seconds, then `start http://localhost:3002`
-5. Wait 15 more seconds for browser to connect
+Read this file first — it contains 26 rules learned from real testing. Every rule is critical:
+`architect/prompts/building-lessons.md`
 
-## Your Task
+Then read the reference implementation for correct patterns:
+`build_one_floor.py`
 
-The user wants: $ARGUMENTS
+## Step 2: Ensure editor is running
 
-Read these files FIRST before doing anything:
-- `C:\Users\Devlo\Desktop\architectbot\architect\prompts\building-lessons.md` — MANDATORY. Contains all hard-won lessons about node creation, architectural design, furniture placement, and WebSocket protocol. Every rule must be followed.
-- `C:\Users\Devlo\Desktop\architectbot\build_one_floor.py` — Reference implementation showing the correct patterns for WebSocket client, wall creation, door/window placement, furniture, outdoor landscaping, etc.
+Check if ports 3002 and 3100 are in use:
+```bash
+netstat -ano | grep -E ":(3002|3100) " | grep LISTENING
+```
 
-## How to Build
+If NOT running, start everything:
+```bash
+bash start.sh
+```
 
-Write a Python script at `C:\Users\Devlo\Desktop\architectbot\build_one_floor.py` that:
+If the browser isn't open, open it:
+```bash
+start http://localhost:3002   # Windows
+open http://localhost:3002    # Mac
+xdg-open http://localhost:3002 # Linux
+```
 
-1. Connects to the WebSocket relay at ws://localhost:3100
-2. Registers as role "python"
-3. Clears the scene and waits for default building/level to reinitialize
-4. Creates the building floor by floor using `create_node` commands
-5. Places furniture and outdoor elements
+Wait 15 seconds after opening the browser before sending commands.
 
-## Architectural Principles (from lessons learned)
+## Step 3: Design the building
 
-- **NEVER make a plain rectangle.** Use L-shapes, T-shapes, U-shapes, or compound layouts
-- **NOT every space needs function.** Leave covered terraces, breezeways, courtyards — negative space
-- **Use separate volumes.** Main house + guest pavilion + pool house + carport as independent structures
-- **Outdoor is essential.** Pool, sports court, garden, parking with cars, landscaping with trees/palms/bushes
-- **Split-level.** Not all wings need upper floors — vary heights for visual interest
-- **Open structures.** Covered terraces have columns (scaled pillars) + ceiling but open sides
-- **Floor-to-ceiling windows** on living areas. Small windows on bathrooms/utility
-- **Door/window position[0] = distance from wall START** (not center!)
-- **Doors/windows are children of WALLS** (parentId = wallId) for CSG cutouts
-- **No Python-generated IDs** — Zod parse creates them
-- **Lowercase types** — `wall`, `door`, `window`, not `WallNode`
-- **Roofs = 2 nodes** — RoofNode (empty container) + RoofSegmentNode (geometry)
-- **Scale pillars [1,2.5,1]** for columns
-- **Pool = sunken slab (elevation -0.5) + blue zone**
+The user wants: **$ARGUMENTS**
 
-## After Building
+Design an architectural plan following these principles:
 
-Run the script: `start http://localhost:3002 && sleep 15 && python build_one_floor.py`
+### Shape & Massing
+- NEVER a plain rectangle. Use compound layouts: multiple separate volumes connected by breezeways, covered walkways, or shared courtyards
+- Consider L-shape, T-shape, U-shape, or scattered pavilion layouts
+- Split-level: not all sections need to be the same height. A single-story wing next to a 2-story block creates visual interest
+- Vary the volumes: main house, guest pavilion, pool house, carport — each is its own building
 
-If the browser wasn't connected, the script's retry logic will handle it.
+### Negative Space
+- NOT every area needs to be an enclosed room. Leave:
+  - Covered terraces (slab + ceiling + columns, open sides)
+  - Breezeways (connecting corridors, columns only)
+  - Courtyards (open-air space between wings)
+  - Garden areas between buildings
+- The space BETWEEN buildings is as important as the buildings themselves
+
+### Outdoor Living
+- Swimming pool: sunken slab (elevation -0.5) + blue zone + pool deck + sunbeds + umbrellas
+- Parking: carport with columns + Tesla cars
+- Sports: basketball hoops, playground
+- Garden: trees, palms, fir trees (privacy screening), bushes (garden beds)
+- Patio seating areas with umbrellas between buildings
+- Landscaping around the full property perimeter
+
+### Interior
+- Open-plan living/kitchen/dining in main house (minimal interior walls)
+- Floor-to-ceiling windows on living areas (width 2.5-3.0m, height 2.2-2.4m, sill 0.3m)
+- Small windows on bathrooms and utility (1.0-1.2m)
+- 3.2-3.5m ceiling heights for grand spaces
+- Properly furnished: sofas, dining tables with chairs, beds with nightstands, kitchen appliances
+
+## Step 4: Write the build script
+
+Write a Python script to `build_one_floor.py` following the reference implementation's WebSocket client pattern. Critical rules:
+
+### Node creation
+- No Python-generated IDs — Zod parse creates `{type}_{nanoid}` IDs
+- Lowercase type values: `wall`, `door`, `window`, `slab`, `ceiling`, `zone`, `roof`, `roof-segment`, `item`, `level`
+- `children: []` is provided by Zod parse via the command handler
+
+### Doors & Windows
+- `position[0]` = distance from wall START in meters (not center)
+- `parentId` = wall ID (MUST be the wall, not level — required for CSG cutouts)
+- `rotation: [0, 0, 0]` for front side
+- Door height/2 for position[1], sill + height/2 for window position[1]
+
+### Roofs (if needed)
+- Two nodes: RoofNode (container, position [0,0,0]) + RoofSegmentNode (geometry, position at building center)
+- RoofNode has NO geometry fields
+
+### Outdoor items
+- Children of level 0
+- Can use negative coordinates (outside building footprint)
+- Scale pillars `[1, 2.5, 1]` for structural columns
+- Pool = slab at elevation -0.5 + blue zone
+
+### WebSocket protocol
+- Parameter names: camelCase (`parentId`, `nodeId`, `nodeIds`)
+- `set_selection` needs nested `selection` object
+- `read_nodes` filter uses `type` not `node_type`
+- After `clear()`, poll `read_state` until building/level appear
+
+## Step 5: Run it
+
+```bash
+start http://localhost:3002 && sleep 15 && python build_one_floor.py
+```
+
+If it fails with "No default scene", the browser wasn't connected. Wait and retry.
+
+## Available Furniture Assets
+
+**Living:** sofa, lounge-chair, livingroom-chair, coffee-table, tv-stand, floor-lamp, rectangular-carpet, round-carpet, piano, indoor-plant, small-indoor-plant, cactus
+**Kitchen:** fridge, stove, kitchen-counter, kitchen-cabinet, microwave, stool, dining-table, dining-chair
+**Bedroom:** double-bed, single-bed, bunkbed, bedside-table, closet, dresser, table-lamp
+**Bathroom:** toilet, bathroom-sink, shower-square, bathtub, washing-machine
+**Office:** office-table, office-chair, bookshelf, shelf
+**Outdoor:** tree, fir-tree, palm, bush, patio-umbrella, sunbed, high-fence, medium-fence, low-fence, tesla, parking-spot, basket-hoop, outdoor-playhouse, ball, scooter, pillar
+**Leisure:** pool-table, threadmill, barbell-stand, guitar
+**Decor:** coat-rack, trash-bin, round-mirror, picture, books, column, stairs
