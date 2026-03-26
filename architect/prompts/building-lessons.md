@@ -80,6 +80,10 @@ async def cmd(self, c, **kw):
 
 22. **Scale pillars for columns.** The `pillar` asset is only 1.3m tall. Scale it `[1, 2.5, 1]` to make proper structural columns for terraces and carports.
 
+## Browser Error Monitoring
+
+27. **Browser errors are forwarded to Python.** The BridgeProvider intercepts `console.error` and `window.onerror`, sending them to the Python client via `{"type": "browser_error", "payload": "..."}`. The client stores them in `client.browser_errors` and prints `[BROWSER ERROR]` to terminal. After building, check `client.browser_errors` — if non-empty, something went wrong in the renderer.
+
 ## WebSocket Protocol Rules
 
 23. **Parameter names must be camelCase** matching TypeScript types: `parentId` (not `parent_id`), `nodeId` (not `node_id`), `nodeIds` (not `ids`).

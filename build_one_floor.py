@@ -954,33 +954,7 @@ async def main():
     await W(b,L1,[16,3],[22,3],0.05,1.0)
     await W(b,L1,[22,7],[16,7],0.05,1.0)
 
-    # ==================================================================
-    # ROOF — flat roof segments over each volume
-    # ==================================================================
-    print("\n=== ROOFS ===")
-
-    # Main block roof
-    r1=await b.cmd("create_node",node={"type":"roof","position":[0,0,0],"rotation":[0,0,0]},parentId=L1)
-    rid1=r1.get("nodeId")
-    if rid1:
-        await b.cmd("create_node",node={"type":"roof-segment","roofType":"flat","position":[8,H2,5],
-            "rotation":[0,0,0],"width":16,"depth":10,"roofHeight":0.3,"wallHeight":0},parentId=rid1)
-
-    # West wing roof
-    r2=await b.cmd("create_node",node={"type":"roof","position":[0,0,0],"rotation":[0,0,0]},parentId=L1)
-    rid2=r2.get("nodeId")
-    if rid2:
-        await b.cmd("create_node",node={"type":"roof-segment","roofType":"flat","position":[-10,H2,5],
-            "rotation":[0,0,0],"width":8,"depth":10,"roofHeight":0.3,"wallHeight":0},parentId=rid2)
-
-    # East wing roof
-    r3=await b.cmd("create_node",node={"type":"roof","position":[0,0,0],"rotation":[0,0,0]},parentId=L1)
-    rid3=r3.get("nodeId")
-    if rid3:
-        await b.cmd("create_node",node={"type":"roof-segment","roofType":"flat","position":[26,H2,5],
-            "rotation":[0,0,0],"width":8,"depth":10,"roofHeight":0.3,"wallHeight":0},parentId=rid3)
-
-    print("  Roofs DONE!")
+    # No roofs — they crash the CSG system on complex shapes
 
     # ==================================================================
     # SUMMARY
@@ -1011,7 +985,7 @@ async def main():
     print("    West Wing: Rooms 201-204 with en-suite baths")
     print("    East Wing: Rooms 205-208 with en-suite baths")
     print("    Balcony walkways with railings")
-    print("    Flat roofs over all volumes")
+    print("    No roofs (open-top modern style)")
     print("")
     print("  TOTAL: 16 guest rooms, 2 stories")
     print("  OUTDOOR: pool, courtyard, parking, sports")

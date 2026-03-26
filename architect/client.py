@@ -25,6 +25,7 @@ class EditorClient:
         self._ws: ClientConnection | None = None
         self._listener_task: asyncio.Task[None] | None = None
         self._pending: dict[str, asyncio.Future[dict]] = {}
+        self.browser_errors: list[str] = []
 
     # ------------------------------------------------------------------
     # Connection lifecycle
@@ -45,6 +46,14 @@ class EditorClient:
                     msg = json.loads(raw)
                 except json.JSONDecodeError:
                     continue
+
+                # Browser error forwarding
+                if msg.get("type") == "browser_error":
+                    error_msg = msg.get("payload", "")
+                    self.browser_errors.append(error_msg)
+                    print(f"  [BROWSER ERROR] {error_msg[:200]}")
+                    continue
+
                 payload = msg.get("payload", msg)
                 msg_id = payload.get("id")
                 if msg_id and msg_id in self._pending:
