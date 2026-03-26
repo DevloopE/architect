@@ -123,7 +123,7 @@ H2=3.0  # second floor height
 #  PARKING/CARPORT                                       SPORTS
 #  [-14,12]====[-6,20]                                   [22,14]====[30,20]
 #
-#  2nd Floor (Level 1):
+#  2nd Floor (Level 2):
 #  - West wing: Rooms 201-204
 #  - East wing: Rooms 205-208
 #  - Main block: Conference room, Lounge bar, Office
@@ -243,10 +243,10 @@ async def main():
     L=lid0
 
     # ==================================================================
-    # FLOOR 1 (Ground Floor) — Level 0
+    # FLOOR 1 (Ground Floor) — Level 1
     # ==================================================================
     print("========================================")
-    print("  GROUND FLOOR (Level 0)")
+    print("  GROUND FLOOR (Level 1)")
     print("========================================")
     await b.cmd("set_selection",selection={"levelId":L})
 
@@ -673,17 +673,17 @@ async def main():
     print("  Ground floor DONE!")
 
     # ==================================================================
-    # FLOOR 2 (Upper Floor) — Level 1
+    # FLOOR 2 (Upper Floor) — Level 2
     # ==================================================================
     print("\n========================================")
-    print("  UPPER FLOOR (Level 1)")
+    print("  UPPER FLOOR (Level 2)")
     print("========================================")
 
-    # Create level 1
-    r = await b.cmd("create_node",node={"type":"level","elevation":H,"index":1},parentId=bid)
+    # Create level 2
+    r = await b.cmd("create_node",node={"type":"level","elevation":H,"level":2},parentId=bid)
     lid1 = r.get("nodeId")
     if not lid1:
-        print("ERROR: Could not create level 1")
+        print("ERROR: Could not create level 2")
         await b.close()
         return
 

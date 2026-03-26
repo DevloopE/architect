@@ -86,10 +86,10 @@ async def main():
     for nid, n in nodes.items():
         if n.get("type")=="building": bid = nid
         if n.get("type")=="level": lid0 = nid
-    print(f"Building: {bid}, Level0: {lid0}")
+    print(f"Building: {bid}, Level1 (Ground): {lid0}")
 
-    # =================== GROUND FLOOR ===================
-    print("\n--- Ground Floor ---")
+    # =================== GROUND FLOOR (Level 1) ===================
+    print("\n--- Ground Floor (Level 1) ---")
     await b.cmd("set_selection", selection={"levelId": lid0})
 
     # Slab
@@ -155,15 +155,15 @@ async def main():
 
     print("  Ground floor DONE!")
 
-    # =================== FIRST FLOOR ===================
-    print("\n--- First Floor ---")
-    r = await b.cmd("create_node", node={"type":"level","level":1}, parentId=bid)
+    # =================== SECOND FLOOR ===================
+    print("\n--- Second Floor ---")
+    r = await b.cmd("create_node", node={"type":"level","level":2}, parentId=bid)
     lid1 = r.get("nodeId")
     if not lid1:
         state = await b.cmd("read_state")
         for nid, n in state.get("nodes",{}).items():
             if n.get("type")=="level" and nid != lid0: lid1 = nid; break
-    print(f"  Level 1: {lid1}")
+    print(f"  Level 2: {lid1}")
     await b.cmd("set_selection", selection={"levelId": lid1})
 
     await b.cmd("create_node", node={"type":"slab","polygon":[[0,0],[12,0],[12,10],[0,10]],"elevation":0.05}, parentId=lid1)
