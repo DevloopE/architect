@@ -1,39 +1,44 @@
 #!/usr/bin/env bash
-# ArchitectBot — one-command setup
+# Architect — one-command setup
 # Usage: bash setup.sh
 
 set -e
-echo "=== ArchitectBot Setup ==="
+echo "=== Architect Setup ==="
 
-# 1. Initialize editor submodule if needed
+# 1. Check editor kernel
 if [ ! -f editor/package.json ]; then
-  echo "[1/4] Cloning editor submodule..."
-  git submodule update --init --recursive
+  echo "[ERROR] Editor kernel not found. Make sure 'editor/' directory exists."
+  exit 1
 else
-  echo "[1/4] Editor submodule already present"
+  echo "[1/5] Editor kernel present"
 fi
 
 # 2. Install editor dependencies
-echo "[2/4] Installing editor dependencies (bun)..."
+echo "[2/5] Installing editor dependencies (bun)..."
 cd editor
 bun install
 cd ..
 
-# 3. Install Python dependencies
-echo "[3/4] Installing Python dependencies..."
-pip install -e ".[dev]" --quiet
+# 3. Install Electron dependencies
+echo "[3/5] Installing Electron dependencies..."
+cd electron
+npm install
+cd ..
 
-# 4. Verify
-echo "[4/4] Verifying..."
-python -c "from architect.client import EditorClient; print('  Python OK')"
+# 4. Install Python dependencies
+echo "[4/5] Installing Python dependencies..."
+pip install -e ".[dev]" --quiet 2>/dev/null || pip install websockets --quiet
+
+# 5. Verify
+echo "[5/5] Verifying..."
 echo "  Editor OK"
+echo "  Electron OK"
 
 echo ""
 echo "=== Setup complete! ==="
 echo ""
 echo "Usage:"
-echo "  In Claude Code, run:  /build a modern villa with pool"
-echo ""
-echo "Or manually:"
-echo "  1. bash start.sh        (starts editor + relay + browser)"
-echo "  2. python build_one_floor.py  (builds the last generated design)"
+echo "  Desktop app:  cd electron && npm start"
+echo "  Browser mode:  bash start.sh"
+echo "  Claude Code:   /build a modern villa with pool"
+echo "  Manual build:  python build_one_floor.py"

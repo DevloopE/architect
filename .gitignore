@@ -4,4 +4,9 @@ __pycache__/
 dist/
 build/
 .venv/
-electron/node_modules/
+node_modules/
+.next/
+.turbo/
+*.tsbuildinfo
+.env
+.env.local

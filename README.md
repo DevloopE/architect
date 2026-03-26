@@ -1,65 +1,96 @@
-# ArchitectBot
+# Architect
 
-AI-powered 3D building generator. Describe a building in natural language, get a fully furnished 3D model in the browser.
+**Build any building with Claude Code.**
 
-https://github.com/pascalorg/editor
+AI-powered 3D architectural editor with live construction, 140+ furniture items, floor-level switching, and Python/WebSocket automation. Describe a building in natural language and watch it appear in real-time.
 
 ## Quick Start
 
 ```bash
-# 1. Clone with submodule
-git clone --recursive https://github.com/YOUR_USERNAME/architectbot.git
-cd architectbot
+# 1. Clone
+git clone https://github.com/DevloopE/architect.git
+cd architect
 
-# 2. Setup (installs editor + python deps)
+# 2. Setup (installs editor + electron + python deps)
 bash setup.sh
 
-# 3. In Claude Code, run:
+# 3. Run the desktop app
+cd electron && npm start
+
+# 4. In Claude Code, run:
 /build a modern compound estate with pool, guest house, and carport
 ```
 
 ## What It Does
 
 You type a prompt. The AI:
-1. Designs the architecture (compound layouts, not rectangles)
+1. Designs the architecture (compound layouts, courtyards, split-level)
 2. Writes a build script with exact wall coordinates, doors, windows, furniture
 3. Sends commands over WebSocket to the live 3D editor
-4. The building appears in your browser at http://localhost:3002
+4. The building appears in real-time with 140+ items of furniture and decor
+
+## Features
+
+- **140+ furniture items** — seating, tables, beds, kitchen, bathroom, lighting, outdoor, fitness, decor, safety equipment
+- **Floor-level switcher** — floating panel to switch between floors with solo/stacked view modes
+- **Scene JSON loading** — load both pipeline and scene JSON files
+- **Level numbering** — Level 1 = ground floor, Level 0 = basement, Level 2+ = upper floors
+- **Electron desktop app** — WebGPU-accelerated native window
+- **Live construction panel** — watch every wall, door, and item appear step by step
+- **Save/Load pipelines** — save construction sequences and replay them
+- **Export** — GLB (standard 3D) and raw scene JSON
 
 ## Requirements
 
-- [Bun](https://bun.sh/) (for the editor)
-- [Python 3.11+](https://python.org/) (for the build scripts)
+- [Bun](https://bun.sh/) (for the editor kernel)
+- [Node.js 20+](https://nodejs.org/) (for Electron and relay)
+- [Python 3.11+](https://python.org/) (for build scripts)
 - [Claude Code](https://claude.ai/claude-code) (for the `/build` command)
 
-## Manual Usage
+## Usage
 
+### Desktop App (Electron)
 ```bash
-# Terminal 1: Start editor + relay + browser
-bash start.sh
+cd electron && npm start
+```
 
-# Terminal 2: Run the build script
+### Browser Mode
+```bash
+bash start.sh
+# Opens http://localhost:3002
+```
+
+### Claude Code
+```bash
+/build a 3-story luxury hotel with rooftop bar and underground parking
+```
+
+### Manual Build
+```bash
+bash start.sh
 python build_one_floor.py
 ```
 
 ## Architecture
 
 ```
-architectbot/
-├── editor/                    # Pascal Editor (git submodule)
-│   ├── packages/editor/src/
-│   │   └── components/bridge/ # WebSocket bridge (our addition)
-│   └── apps/editor/
-│       └── bridge-relay.mjs   # WebSocket relay server (our addition)
-├── architect/                 # Python AI agents
-│   ├── agents/                # LangGraph agents
-│   ├── tools/                 # Editor API wrappers
-│   └── prompts/               # System prompts + lessons learned
+architect/
+├── editor/                    # Editor kernel (Pascal Editor)
+│   ├── packages/core/         # Scene schema, state, spatial logic
+│   ├── packages/editor/       # Editor UI, tools, level-switcher
+│   ├── packages/viewer/       # 3D canvas (React Three Fiber + WebGPU)
+│   └── apps/editor/           # Next.js app + WebSocket relay
+├── electron/                  # Desktop app (Electron + WebGPU)
+│   └── main.js                # Electron main process
+├── architect/                 # Python AI agents + prompts
+│   └── prompts/               # System prompts + building lessons
 ├── .claude/commands/
-│   └── build.md               # /build slash command
-├── build_one_floor.py         # Generated build script
+│   └── build.md               # /build slash command (140 items catalog)
+├── build_house.py             # Example: 2-story house with furniture
+├── build_one_floor.py         # Example: courtyard hotel compound
+├── save_scene.py              # Save/load scenes via Python
 ├── setup.sh                   # One-command setup
-└── start.sh                   # Start editor + relay
+└── start.sh                   # Start editor + relay + browser
 ```
 
 ## How It Works
@@ -70,7 +101,7 @@ architectbot/
              → Writes Python build script
              → Script connects via WebSocket to editor
              → Creates walls, doors, windows, furniture, landscape
-             → Building appears live in browser
+             → Building appears live in browser/desktop
 ```
 
 ## Design Philosophy
@@ -82,4 +113,9 @@ Buildings are NOT plain boxes. Every build follows these principles:
 - **Outdoor living** — pool, sports court, garden, parking
 - **Split-level** — varying heights for visual interest
 - **Floor-to-ceiling windows** — modern, light-filled interiors
-- **Full furnishing** — every room has appropriate furniture
+- **Full furnishing** — 140+ items, every room feels lived-in with decor, plants, lighting, and accessories
+- **Accessibility** — every room has a door, every habitable room has a window, multi-story = stairwell
+
+## License
+
+MIT

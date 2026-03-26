@@ -16,8 +16,8 @@ app.commandLine.appendSwitch('enable-gpu-rasterization')
 app.commandLine.appendSwitch('enable-zero-copy')
 app.commandLine.appendSwitch('force_high_performance_gpu')
 
-// Use the installed editor (not the submodule — submodule may not have deps installed)
-const EDITOR_DIR = process.env.EDITOR_DIR || path.resolve(require('os').homedir(), 'Desktop', 'editor')
+// Use the bundled editor kernel
+const EDITOR_DIR = process.env.EDITOR_DIR || path.resolve(__dirname, '..', 'editor')
 const RELAY_PATH = path.join(EDITOR_DIR, 'apps', 'editor', 'bridge-relay.mjs')
 const EDITOR_URL = 'http://localhost:3002'
 const RELAY_PORT = 3100
