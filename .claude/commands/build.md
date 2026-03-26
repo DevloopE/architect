@@ -68,7 +68,28 @@ Design an architectural plan following these principles:
 
 ## Step 4: Write the build script
 
-Write a Python script to `build_one_floor.py` following the reference implementation's WebSocket client pattern. Critical rules:
+Write a Python script to `build_one_floor.py` following the reference implementation's WebSocket client pattern.
+
+### CRITICAL: Streaming with error interruption
+The script MUST operate like an interpreter — one command at a time, stop on first error:
+- Every `cmd()` call checks the response for errors
+- If ANY command fails, print the error and STOP immediately (raise RuntimeError)
+- Do NOT batch commands or continue past failures
+- Print each step as it executes so the user sees progress streaming
+- The `cmd()` method must raise on error, not silently continue:
+```python
+async def cmd(self, c, **kw):
+    ...
+    data = r.get("data", r)
+    if isinstance(r, dict) and r.get("ok") == False:
+        err = r.get("error", "unknown")
+        print(f"  FATAL: {c} failed: {err}")
+        raise RuntimeError(f"{c}: {err}")
+    return data
+```
+
+### No roofs unless asked
+Roofs crash the editor's CSG system on complex shapes. Only add roofs if the user explicitly requests them, and ONLY on simple rectangular volumes with `roofType: "flat"`.
 
 ### Node creation
 - No Python-generated IDs — Zod parse creates `{type}_{nanoid}` IDs

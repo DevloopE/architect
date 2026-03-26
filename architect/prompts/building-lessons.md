@@ -2,6 +2,19 @@
 
 These are hard-won lessons from building in the Pascal Editor. Every agent MUST follow these rules.
 
+## Execution Rules (MOST IMPORTANT)
+
+0. **Stream commands one at a time. Stop on first error.** The build script MUST check every single command response. If `result.get("ok") == False` or `result.get("error")`, print the error and STOP immediately. Do NOT continue building on a broken state. This is an interpreter, not a batch pipeline. Pattern:
+```python
+async def cmd(self, c, **kw):
+    ...
+    if not result.get("ok", True):
+        error = result.get("error", "unknown")
+        print(f"  FATAL: {c} failed: {error}")
+        raise RuntimeError(f"Command {c} failed: {error}")
+    return result.get("data", result)
+```
+
 ## Node Creation Rules
 
 1. **Never generate IDs in Python.** The browser-side Zod `.parse()` auto-generates proper `{type}_{nanoid}` IDs. Just send the node data without an `id` field.
@@ -15,6 +28,8 @@ These are hard-won lessons from building in the Pascal Editor. Every agent MUST 
 5. **Roofs are TWO nodes.** Create a `RoofNode` (container, child of level) with only `position` and `rotation`. Then create a `RoofSegmentNode` (child of the roof) with all geometry: `roofType`, `width`, `depth`, `roofHeight`, `wallHeight`, etc. The RoofNode has NO geometry fields.
 
 6. **Roof position matters.** The RoofSegmentNode `position` should be at the center of the building footprint. The RoofNode position should be `[0,0,0]`.
+
+6b. **Roofs are fragile — avoid unless explicitly requested.** The RoofSystem's CSG evaluator crashes easily with bad geometry. Only create roofs when the user specifically asks. Use flat roofs (`roofType: "flat"`) as the safest option. Never create roofs on buildings with complex or L/T/U-shaped footprints — they only work on simple rectangular volumes.
 
 7. **After `clear()`, wait and retry `read_state`.** The scene takes time to reinitialize the default Site > Building > Level hierarchy. Poll with sleep until building_id and level_id are found.
 
