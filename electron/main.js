@@ -6,7 +6,9 @@ const http = require('http')
 // Enable WebGPU (required — editor uses WebGPU renderer)
 app.commandLine.appendSwitch('enable-unsafe-webgpu')
 app.commandLine.appendSwitch('enable-webgpu-developer-features')
-app.commandLine.appendSwitch('enable-features', 'Vulkan,WebGPU,UseSkiaGraphite')
+// Use D3D12 backend on Windows (Vulkan crashes on some drivers)
+app.commandLine.appendSwitch('use-webgpu-adapter', 'd3d12')
+app.commandLine.appendSwitch('enable-features', 'WebGPU,UseSkiaGraphite')
 
 // Force high-performance GPU
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
