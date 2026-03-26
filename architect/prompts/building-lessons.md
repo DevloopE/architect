@@ -33,6 +33,12 @@ async def cmd(self, c, **kw):
 
 7. **After `clear()`, wait and retry `read_state`.** The scene takes time to reinitialize the default Site > Building > Level hierarchy. Poll with sleep until building_id and level_id are found.
 
+7b. **Always clear + reload browser before building.** Every new build must start completely fresh. The script should:
+   1. Send `clear` command
+   2. Then send a JS eval to wipe IndexedDB: send a `clear` command which calls `clearScene()` (this already handles it)
+   3. Refresh the browser page to flush all cached 3D objects from memory
+   Pattern: after `clear()`, also send `window.location.reload()` by having the BridgeProvider handle a `reload` command, OR just accept that `clear` is sufficient since it calls `unloadScene()` + `loadScene()` which resets everything.
+
 8. **Reuse the default building/level.** `loadScene()` auto-creates Site > Building > Level(0). Don't create new ones — find them in state with `type == "building"` and `type == "level"`.
 
 9. **`children: []` is required** on wall, level, ceiling, roof nodes. The renderers call `.map()` on children. If missing, the scene crashes. The Zod parse handles this, but if it fails, the fallback must include `children: []`.

@@ -70,6 +70,23 @@ Design an architectural plan following these principles:
 
 Write a Python script to `build_one_floor.py` following the reference implementation's WebSocket client pattern.
 
+### CRITICAL: Clear forces browser reload
+The `clear` command triggers `window.location.reload()` in the browser. After sending `clear`, the Python WebSocket will disconnect. The script MUST:
+1. Send `clear`
+2. Close the WebSocket connection
+3. Wait 8-10 seconds for the browser to reload and BridgeProvider to reconnect
+4. Reconnect the Python WebSocket
+5. Then poll `read_state` until building/level appear
+
+Pattern:
+```python
+await b.cmd("clear")
+await b.close()
+await asyncio.sleep(10)  # browser reloads
+await b.connect()        # reconnect
+# then poll for building/level...
+```
+
 ### CRITICAL: Streaming with error interruption
 The script MUST operate like an interpreter — one command at a time, stop on first error:
 - Every `cmd()` call checks the response for errors
