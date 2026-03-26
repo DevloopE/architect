@@ -31,22 +31,26 @@ Most AI building tools give you a floor plan image. Architect gives you a **real
 ```bash
 git clone https://github.com/DevloopE/architect.git
 cd architect
-bash setup.sh
 ```
 
-**Desktop app:**
-```bash
-cd electron && npm start
+**Windows (PowerShell):**
+```powershell
+.\setup.ps1                          # install dependencies
+cd electron; npm start               # desktop app
+# or
+.\start.ps1                          # browser mode
 ```
 
-**Browser mode:**
+**Mac / Linux:**
 ```bash
-bash start.sh
+bash setup.sh                        # install dependencies
+cd electron && npm start             # desktop app
+# or
+bash start.sh                        # browser mode
 ```
 
-**Build something:**
-```bash
-# In Claude Code
+**Build something (in Claude Code):**
+```
 /build a japanese courtyard house with zen garden and tea room
 ```
 
