@@ -77,6 +77,21 @@ Design an architectural plan following these principles:
 
 Write a Python script to `build_one_floor.py` following the reference implementation's WebSocket client pattern.
 
+### CRITICAL: Construction Panel Integration
+The editor has a built-in construction panel that shows every step live. The pipeline MUST:
+1. After reconnecting, send `build_start` command — clears the panel and shows "building" indicator
+2. Before each major section, send `log` with a descriptive message: `await b.cmd("log", message="Ground Floor: Exterior Walls", level="step")`
+3. Every `create_node` call is **automatically logged** to the panel by the command handler — you do NOT need to log individual nodes
+4. After the build finishes, send `build_end` command — shows "complete" indicator
+
+The `B` class must have a `log` helper:
+```python
+async def log(self, msg, level="step"):
+    await self.cmd("log", message=msg, level=level)
+```
+
+Log levels: `step` (yellow, section headers), `info` (blue, notes), `error` (red), `done` (purple)
+
 ### CRITICAL: Clear forces browser reload
 The `clear` command triggers `window.location.reload()` in the browser. After sending `clear`, the Python WebSocket will disconnect. The script MUST:
 1. Send `clear`

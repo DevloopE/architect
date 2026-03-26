@@ -111,6 +111,14 @@ async def cmd(self, c, **kw):
     - Set selection to the new level before creating walls on it
     - Cut stairwell hole in the slab with `holes` field
 
+## Construction Panel Integration
+
+33. **The editor has a live construction panel.** Every `create_node` is automatically logged to a floating panel in the browser. The build script must also send:
+    - `build_start` — at the beginning (clears panel, shows building indicator)
+    - `log` with `message` and `level` — before each major section (e.g., "Ground Floor: Exterior Walls")
+    - `build_end` — at the end (shows complete indicator)
+    The `B` class needs a `log(msg, level)` helper. Levels: `step` (section headers), `info` (notes), `error`, `done`.
+
 ## Browser Error Monitoring
 
 27. **Browser errors are forwarded to Python.** The BridgeProvider intercepts `console.error` and `window.onerror`, sending them to the Python client via `{"type": "browser_error", "payload": "..."}`. The client stores them in `client.browser_errors` and prints `[BROWSER ERROR]` to terminal. After building, check `client.browser_errors` — if non-empty, something went wrong in the renderer.

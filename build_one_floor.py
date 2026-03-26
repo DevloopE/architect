@@ -24,6 +24,10 @@ class B:
     async def close(self):
         if self.listener:self.listener.cancel()
         if self.ws:await self.ws.close()
+    async def log(self,msg,level="step"):
+        """Send a log message to the editor's construction panel."""
+        print(f"  >> {msg}")
+        await self.cmd("log",message=msg,level=level)
 
 def X(id,cat,dims,off=None):
     return{"id":id,"category":cat,"name":id.replace("-"," ").title(),"thumbnail":"",
@@ -234,6 +238,8 @@ async def main():
             pass
     if not bid or not lid0:print("ERROR: No default scene");await b.close();return
 
+    # Signal build start to construction panel
+    await b.cmd("build_start")
     L=lid0
 
     # ==================================================================
