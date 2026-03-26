@@ -127,6 +127,12 @@ async def cmd(self, c, **kw):
     return data
 ```
 
+### Level numbering
+- Level 0 = Basement (only if user asks for basement)
+- Level 1 = Ground floor (default start — reuse default level 0 from scene but update it to level 1, OR create a new level 1)
+- Level 2 = First floor, Level 3 = Second floor, etc.
+- The default scene gives level 0 — if no basement needed, update it: `await b.cmd("update_node", nodeId=level_id, data={"level": 1})`
+
 ### No roofs unless asked
 Roofs crash the editor's CSG system on complex shapes. Only add roofs if the user explicitly requests them, and ONLY on simple rectangular volumes with `roofType: "flat"`.
 
