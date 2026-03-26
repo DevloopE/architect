@@ -225,14 +225,14 @@ def create_roof(
     center_z: float,
     width: float,
     depth: float,
-    building_wall_height: float = 2.8,
     roof_type: str = "gable",
-    roof_height: float = 1.5,
+    roof_height: float = 2.0,
+    wall_height: float = 0,
     rotation: float = 0,
 ) -> dict:
-    """Create a roof on a level. RoofNode position = world center of footprint.
-    building_wall_height MUST match the height of the building's walls so the roof sits on top.
-    roof_height = how far the peak extends above the walls.
+    """Create a roof. Put it on its OWN level (one above the top floor).
+    The LevelSystem handles vertical stacking, so wallHeight=0.
+    RoofNode position = world center of footprint.
     Only works on simple rectangular volumes."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
 
@@ -253,7 +253,7 @@ def create_roof(
         "rotation": 0,
         "width": width,
         "depth": depth,
-        "wallHeight": building_wall_height,
+        "wallHeight": wall_height,
         "roofHeight": roof_height,
         "wallThickness": 0.1,
         "deckThickness": 0.1,

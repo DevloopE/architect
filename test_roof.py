@@ -1,4 +1,4 @@
-"""Quick roof alignment test — simple 12x8 box with gable roof."""
+"""Roof test — roof on its own level so LevelSystem handles height."""
 import asyncio, json, uuid, websockets
 
 WS = "ws://localhost:3100"
@@ -35,14 +35,12 @@ async def main():
     b = B(); await b.connect()
     print("[Roof Test] Connected")
 
-    # Clear and reconnect
     try: await b.cmd("clear")
     except: pass
     await b.close()
     await asyncio.sleep(10)
     await b.connect()
 
-    # Find default building/level
     bid = lid = None
     for _ in range(15):
         await asyncio.sleep(1)
@@ -53,28 +51,32 @@ async def main():
                 if n.get("type") == "level": lid = nid
             if bid and lid: break
         except: pass
-    print(f"  Building: {bid}, Level: {lid}")
+    print(f"  Building: {bid}, Level 0: {lid}")
 
-    # Simple 12x8 box
-    print("  Creating walls (12x8 box)...")
+    # Level 0: 12x8 box with walls
+    print("  Creating walls (12x8, height 2.8m)...")
     for s, e in [([0,0],[12,0]), ([12,0],[12,8]), ([12,8],[0,8]), ([0,8],[0,0])]:
         await b.cmd("create_node", node={"type": "wall", "start": s, "end": e,
             "thickness": 0.2, "height": 2.8, "frontSide": "exterior", "backSide": "interior"}, parentId=lid)
 
-    print("  Creating slab...")
     await b.cmd("create_node", node={"type": "slab", "polygon": [[0,0],[12,0],[12,8],[0,8]], "elevation": 0.05}, parentId=lid)
+    await b.cmd("create_node", node={"type": "ceiling", "polygon": [[0,0],[12,0],[12,8],[0,8]], "height": 2.8}, parentId=lid)
 
-    # Roof — center of 12x8 box = [6, 0, 4]
-    print("  Creating roof (gable, center=[6,0,4], w=12, d=8)...")
+    # Level 1: Roof level — LevelSystem stacks it on top of level 0
+    print("  Creating roof level...")
+    r = await b.cmd("create_node", node={"type": "level", "level": 1}, parentId=bid)
+    roof_level_id = r.get("nodeId")
+    print(f"  Roof level: {roof_level_id}")
+
+    # Roof on its own level — wallHeight=0 (no knee walls, it's already at correct height)
+    print("  Creating roof (gable, on roof level)...")
     r = await b.cmd("create_node", node={
         "type": "roof",
-        "position": [6, 0, 4],  # World center
+        "position": [6, 0, 4],
         "rotation": 0,
-    }, parentId=lid)
+    }, parentId=roof_level_id)
     roof_id = r.get("nodeId")
-    print(f"  RoofNode: {roof_id}")
 
-    WALL_H = 2.8  # Must match building wall height
     await b.cmd("create_node", node={
         "type": "roof-segment",
         "roofType": "gable",
@@ -82,15 +84,15 @@ async def main():
         "rotation": 0,
         "width": 12,
         "depth": 8,
-        "wallHeight": WALL_H,     # Roof walls rise to same height as building walls
-        "roofHeight": 1.5,        # Peak extends 1.5m above the walls
+        "wallHeight": 0,
+        "roofHeight": 2.0,
         "wallThickness": 0.1,
         "deckThickness": 0.1,
         "overhang": 0.3,
         "shingleThickness": 0.05,
     }, parentId=roof_id)
 
-    print("  DONE! Check browser — roof should align perfectly with walls.")
+    print("  DONE! Roof on its own level — height handled by LevelSystem.")
     await b.close()
 
 if __name__ == "__main__":

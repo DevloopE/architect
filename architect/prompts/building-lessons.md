@@ -31,8 +31,8 @@ async def cmd(self, c, **kw):
    - **RoofNode** `position` = world center of the building footprint. For walls at `(0,0)-(12,0)-(12,8)-(0,8)`, the center is `[6, 0, 4]`.
    - **RoofSegmentNode** `position` = `[0, 0, 0]` (local to parent, centered).
    - `width` = building width (X span), `depth` = building depth (Z span).
-   - **`wallHeight` = building wall height.** The roof's internal walls must match the building walls. If walls are 2.8m, set `wallHeight: 2.8`. The roof peak is then at `wallHeight + roofHeight`.
-   - `roofHeight` = how far the peak extends ABOVE the wall top (e.g., 1.5m for a moderate slope).
+   - **Put the roof on its own level.** Create a new level (e.g., level 2 for a 1-story building) as a child of the building. The LevelSystem stacks it on top automatically. Then `wallHeight: 0` (no knee walls needed — height is handled by the level). `roofHeight` = peak height (e.g., 2.0m for a moderate slope).
+   - This is the correct pattern: walls on level N, roof on level N+1. The level system handles vertical positioning.
    - Formula: `RoofNode.position = [(minX+maxX)/2, 0, (minZ+maxZ)/2]`
    - `RoofSegmentNode.width = maxX - minX`, `RoofSegmentNode.depth = maxZ - minZ`
 
