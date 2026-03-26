@@ -90,6 +90,13 @@ st = await b.cmd("read_state")
 
 22. **Scale pillars for columns.** The `pillar` asset is only 1.3m tall. Scale it `[1, 2.5, 1]` to make proper structural columns for terraces and carports.
 
+22b. **Don't overdo landscaping.** Trees and bushes are high-poly 3D models. Too many tanks performance and overwhelms the scene visually. Guidelines:
+    - Max 8-10 trees total for a large compound
+    - Max 6-8 bushes
+    - Max 4-6 palms
+    - Space them out — they're accents, not a forest
+    - Perimeter screening: use 3-4 fir trees on each side, not a wall of them
+
 ## Accessibility & Circulation Rules
 
 28. **Every enclosed room MUST have at least one door.** Before finishing a floor, verify that every zone/room has a door connecting it to a hallway or adjacent room. A room with no door is inaccessible — this is a critical design failure. Checklist after laying out walls:
