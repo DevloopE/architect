@@ -13,7 +13,8 @@ app.commandLine.appendSwitch('use-angle', 'gl')
 // Force discrete GPU on multi-GPU systems
 app.commandLine.appendSwitch('force_high_performance_gpu')
 
-const EDITOR_DIR = path.resolve(__dirname, '..', 'editor')
+// Use the installed editor (not the submodule — submodule may not have deps installed)
+const EDITOR_DIR = process.env.EDITOR_DIR || path.resolve(require('os').homedir(), 'Desktop', 'editor')
 const RELAY_PATH = path.join(EDITOR_DIR, 'apps', 'editor', 'bridge-relay.mjs')
 const EDITOR_URL = 'http://localhost:3002'
 const RELAY_PORT = 3100
@@ -23,7 +24,7 @@ let editorProcess = null
 let mainWindow = null
 
 function startRelay() {
-  relay = spawn('node', [RELAY_PATH], { cwd: path.dirname(RELAY_PATH), stdio: 'pipe' })
+  relay = spawn('node', ['--experimental-vm-modules', RELAY_PATH], { cwd: path.dirname(RELAY_PATH), stdio: 'pipe' })
   relay.stdout.on('data', (d) => process.stdout.write(`[relay] ${d}`))
   relay.stderr.on('data', (d) => process.stderr.write(`[relay] ${d}`))
   relay.on('exit', (code) => console.log(`[relay] exited ${code}`))
