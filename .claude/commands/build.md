@@ -133,8 +133,14 @@ async def cmd(self, c, **kw):
 - Level 2 = First floor, Level 3 = Second floor, etc.
 - The default scene gives level 0 — if no basement needed, update it: `await b.cmd("update_node", nodeId=level_id, data={"level": 1})`
 
-### No roofs unless asked
-Roofs crash the editor's CSG system on complex shapes. Only add roofs if the user explicitly requests them, and ONLY on simple rectangular volumes with `roofType: "flat"`.
+### Roofs — correct positioning
+Roofs work but ONLY on simple rectangular volumes. For compound/L/T/U layouts, add one roof per rectangular volume.
+- `RoofNode.position = [centerX, 0, centerZ]` — world center of the rectangle
+- `RoofSegmentNode.position = [0, 0, 0]` — local, centered in parent
+- `width` = building X span, `depth` = building Z span
+- Formula: for walls `(x1,z1)-(x2,z2)`, center = `[(x1+x2)/2, 0, (z1+z2)/2]`
+- Use `create_roof(level_id, center_x, center_z, width, depth, roof_type="gable")`
+- Never roof an irregular polygon — it crashes the CSG system
 
 ### Node creation
 - No Python-generated IDs — Zod parse creates `{type}_{nanoid}` IDs

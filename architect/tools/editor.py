@@ -221,25 +221,30 @@ def create_window(
 @tool
 def create_roof(
     level_id: str,
+    center_x: float,
+    center_z: float,
+    width: float,
+    depth: float,
     roof_type: str = "gable",
-    width: float = 8,
-    depth: float = 6,
     roof_height: float = 2.5,
     wall_height: float = 0.5,
+    rotation: float = 0,
 ) -> dict:
-    """Create a roof on the top level. Creates RoofNode (container) + RoofSegmentNode (geometry)."""
+    """Create a roof on a level. RoofNode position = world center of footprint.
+    For walls at (0,0)-(12,8), use center_x=6, center_z=4, width=12, depth=8.
+    Only works on simple rectangular volumes — never on L/T/U shapes."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
 
-    # Step 1: Create RoofNode (container — only position/rotation, no geometry)
+    # RoofNode at the world center of the footprint
     roof_node = {
         "type": "roof",
-        "position": [0, 0, 0],
-        "rotation": 0,
+        "position": [center_x, 0, center_z],
+        "rotation": rotation,
     }
     roof_result = _extract(_run(_client.create_node(roof_node, parent_id=level_id)))
     roof_id = roof_result.get("nodeId")
 
-    # Step 2: Create RoofSegmentNode (geometry — child of roof)
+    # RoofSegmentNode at [0,0,0] local (centered in parent)
     segment_node = {
         "type": "roof-segment",
         "roofType": roof_type,

@@ -27,9 +27,14 @@ async def cmd(self, c, **kw):
 
 5. **Roofs are TWO nodes.** Create a `RoofNode` (container, child of level) with only `position` and `rotation`. Then create a `RoofSegmentNode` (child of the roof) with all geometry: `roofType`, `width`, `depth`, `roofHeight`, `wallHeight`, etc. The RoofNode has NO geometry fields.
 
-6. **Roof position matters.** The RoofSegmentNode `position` should be at the center of the building footprint. The RoofNode position should be `[0,0,0]`.
+6. **Roof positioning — center of footprint.**
+   - **RoofNode** `position` = world center of the building footprint. For walls at `(0,0)-(12,0)-(12,8)-(0,8)`, the center is `[6, 0, 4]`.
+   - **RoofSegmentNode** `position` = `[0, 0, 0]` (local to parent, centered).
+   - `width` = building width (X span), `depth` = building depth (Z span).
+   - Formula: `RoofNode.position = [(minX+maxX)/2, 0, (minZ+maxZ)/2]`
+   - `RoofSegmentNode.width = maxX - minX`, `RoofSegmentNode.depth = maxZ - minZ`
 
-6b. **Roofs are fragile — avoid unless explicitly requested.** The RoofSystem's CSG evaluator crashes easily with bad geometry. Only create roofs when the user specifically asks. Use flat roofs (`roofType: "flat"`) as the safest option. Never create roofs on buildings with complex or L/T/U-shaped footprints — they only work on simple rectangular volumes.
+6b. **Roofs only on SIMPLE RECTANGULAR volumes.** The CSG evaluator crashes on complex L/T/U shapes. For compound layouts, add a roof per rectangular volume separately. Each roof covers exactly one rectangle of walls. Never try to roof an irregular polygon.
 
 7. **After `clear()`, wait and retry `read_state`.** The scene takes time to reinitialize the default Site > Building > Level hierarchy. Poll with sleep until building_id and level_id are found.
 
