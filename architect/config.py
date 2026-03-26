@@ -5,9 +5,9 @@ from __future__ import annotations
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
-DEFAULT_WS_URL = "ws://localhost:3000"
-DEFAULT_EDITOR_URL = "http://localhost:3000"
+DEFAULT_MODEL = "claude-sonnet-4-6"
+DEFAULT_WS_URL = "ws://localhost:3100"
+DEFAULT_EDITOR_URL = "http://localhost:3002"
 
 
 def get_model(model_name: str) -> ChatAnthropic | ChatOpenAI:

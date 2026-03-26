@@ -93,12 +93,13 @@ def _print_node_update(node_name: str, update: dict, verbose: bool) -> None:
 
     if node_name == "architect":
         spec = update.get("architect_spec") or {}
-        floors = spec.get("floors", [])
-        rooms = sum(len(f.get("rooms", [])) for f in floors)
-        roof = spec.get("roof", {}).get("type", "none")
+        n_floors = spec.get("floors", 0)
+        levels = spec.get("levels", [])
+        rooms = sum(len(lv.get("rooms", [])) for lv in levels)
+        roof = spec.get("roofType", "none")
         console.print(
             f"  [bold cyan]{node_name}:[/] "
-            f"{len(floors)} floor(s), {rooms} room(s), roof={roof}"
+            f"{n_floors} floor(s), {rooms} room(s), roof={roof}"
         )
         if verbose and spec:
             console.print(f"    [dim]{spec}[/]")

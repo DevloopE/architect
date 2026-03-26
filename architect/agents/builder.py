@@ -67,20 +67,15 @@ def builder_agent(state: BuildState, model=None) -> dict:
         console.print("  Reading editor state ...")
         editor_state = _safe_invoke(read_state, {}, "read_state", errors)
         if editor_state is not None:
-            # Walk the tree to find a BuildingNode and its LevelNodes
-            nodes = editor_state.get("nodes", editor_state.get("children", []))
+            # Nodes are a FLAT dict {id: node_obj} with lowercase type values
+            nodes = editor_state.get("nodes", {})
             if isinstance(nodes, dict):
-                nodes = list(nodes.values())
-            for node in nodes if isinstance(nodes, list) else []:
-                if node.get("type") == "BuildingNode":
-                    building_id = node.get("id", building_id)
-                    # Collect existing level IDs
-                    children = node.get("children", [])
-                    if isinstance(children, list):
-                        for child in children:
-                            if isinstance(child, dict) and child.get("type") == "LevelNode":
-                                if child["id"] not in level_ids:
-                                    level_ids.append(child["id"])
+                for nid, node in nodes.items():
+                    ntype = node.get("type", "")
+                    if ntype == "building" and building_id is None:
+                        building_id = nid
+                    if ntype == "level" and nid not in level_ids:
+                        level_ids.append(nid)
 
     # ------------------------------------------------------------------
     # 2. Create or reuse level

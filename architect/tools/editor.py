@@ -10,7 +10,6 @@ from __future__ import annotations
 import asyncio
 import math
 from typing import Any
-from uuid import uuid4
 
 from langchain_core.tools import tool
 
@@ -37,7 +36,7 @@ def set_client(client: EditorClient) -> None:
 def _run(coro: Any) -> Any:
     """Run an async coroutine from a synchronous context."""
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         return asyncio.run(coro)
     import concurrent.futures
@@ -51,15 +50,16 @@ def _wall_local_x(
     wall_end: list[float],
     position_along_wall: float,
 ) -> float:
-    """Convert a distance-from-start to a wall-local centred x coordinate.
-
-    The wall-local origin sits at the midpoint of the wall, so:
-        ``local_x = position_along_wall - (wall_length / 2)``
-    """
+    """Convert a distance-from-start to a wall-local centred x coordinate."""
     dx = wall_end[0] - wall_start[0]
     dz = wall_end[1] - wall_start[1]
     wall_length = math.sqrt(dx * dx + dz * dz)
     return position_along_wall - (wall_length / 2)
+
+
+def _extract(result: dict) -> dict:
+    """Extract the data payload from an EditorClient response."""
+    return result.get("data", result)
 
 
 # ---------------------------------------------------------------------------
@@ -71,18 +71,21 @@ def _wall_local_x(
 def read_state() -> dict:
     """Read the full editor state."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
-    return _run(_client.read_state())
+    return _extract(_run(_client.read_state()))
 
 
 @tool
 def read_nodes(node_type: str | None = None) -> dict:
     """Read nodes from the editor, optionally filtered by node_type."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
-    return _run(_client.read_nodes(node_type=node_type))
+    return _extract(_run(_client.read_nodes(node_type=node_type)))
 
 
 # ---------------------------------------------------------------------------
 # Tools — creation helpers
+# NOTE: We do NOT generate IDs here. The browser-side command handler
+# passes nodes through Zod .parse() which auto-generates proper IDs
+# in the {type}_{nanoid} format.
 # ---------------------------------------------------------------------------
 
 
@@ -96,21 +99,10 @@ def create_wall(
     front_side: str = "unknown",
     back_side: str = "unknown",
 ) -> dict:
-    """Create a wall on the given level.
-
-    Args:
-        level_id: Parent level node ID.
-        start: Wall start point [x, z].
-        end: Wall end point [x, z].
-        thickness: Wall thickness in metres (default 0.1).
-        height: Wall height in metres (default 2.5).
-        front_side: Label for the front side of the wall.
-        back_side: Label for the back side of the wall.
-    """
+    """Create a wall on the given level. start/end are [x, z] coordinates in metres."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     node = {
-        "id": uuid4().hex[:12],
-        "type": "WallNode",
+        "type": "wall",
         "start": start,
         "end": end,
         "thickness": thickness,
@@ -118,7 +110,7 @@ def create_wall(
         "frontSide": front_side,
         "backSide": back_side,
     }
-    return _run(_client.create_node(node, parent_id=level_id))
+    return _extract(_run(_client.create_node(node, parent_id=level_id)))
 
 
 @tool
@@ -127,21 +119,14 @@ def create_slab(
     polygon: list[list[float]],
     elevation: float = 0.05,
 ) -> dict:
-    """Create a floor slab on the given level.
-
-    Args:
-        level_id: Parent level node ID.
-        polygon: List of [x, z] vertices forming the slab outline.
-        elevation: Top-surface elevation in metres (default 0.05).
-    """
+    """Create a floor slab. polygon is list of [x, z] points in metres."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     node = {
-        "id": uuid4().hex[:12],
-        "type": "SlabNode",
+        "type": "slab",
         "polygon": polygon,
         "elevation": elevation,
     }
-    return _run(_client.create_node(node, parent_id=level_id))
+    return _extract(_run(_client.create_node(node, parent_id=level_id)))
 
 
 @tool
@@ -150,21 +135,14 @@ def create_ceiling(
     polygon: list[list[float]],
     height: float = 2.5,
 ) -> dict:
-    """Create a ceiling on the given level.
-
-    Args:
-        level_id: Parent level node ID.
-        polygon: List of [x, z] vertices forming the ceiling outline.
-        height: Ceiling height in metres (default 2.5).
-    """
+    """Create a ceiling. polygon is list of [x, z] points in metres."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     node = {
-        "id": uuid4().hex[:12],
-        "type": "CeilingNode",
+        "type": "ceiling",
         "polygon": polygon,
         "height": height,
     }
-    return _run(_client.create_node(node, parent_id=level_id))
+    return _extract(_run(_client.create_node(node, parent_id=level_id)))
 
 
 @tool
@@ -174,23 +152,15 @@ def create_zone(
     polygon: list[list[float]],
     color: str = "#3b82f6",
 ) -> dict:
-    """Create a zone (room label) on the given level.
-
-    Args:
-        level_id: Parent level node ID.
-        name: Human-readable room name / type.
-        polygon: List of [x, z] vertices forming the zone boundary.
-        color: Hex colour for the zone (default '#3b82f6').
-    """
+    """Create a named zone (room). polygon is list of [x, z] points in metres."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     node = {
-        "id": uuid4().hex[:12],
-        "type": "ZoneNode",
+        "type": "zone",
         "name": name,
         "polygon": polygon,
         "color": color,
     }
-    return _run(_client.create_node(node, parent_id=level_id))
+    return _extract(_run(_client.create_node(node, parent_id=level_id)))
 
 
 @tool
@@ -205,25 +175,14 @@ def create_door(
     hinges_side: str = "left",
     swing_direction: str = "inward",
 ) -> dict:
-    """Create a door on a wall.
-
-    Args:
-        wall_id: ID of the parent wall (CRITICAL — used for CSG).
-        wall_start: Wall start point [x, z].
-        wall_end: Wall end point [x, z].
-        position_along_wall: Distance in metres from wall start to door centre.
-        width: Door width in metres (default 0.9).
-        height: Door height in metres (default 2.1).
-        side: Which side the door opens toward ('front' or 'back').
-        hinges_side: Hinge placement ('left' or 'right').
-        swing_direction: Swing direction ('inward' or 'outward').
-    """
+    """Create a door on a wall. position_along_wall is distance in metres from wall START.
+    IMPORTANT: parentId MUST be the wall_id for CSG cutouts to work."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     x_local = _wall_local_x(wall_start, wall_end, position_along_wall)
     node = {
-        "id": uuid4().hex[:12],
-        "type": "DoorNode",
+        "type": "door",
         "position": [x_local, height / 2, 0],
+        "rotation": [0, 0, 0],
         "width": width,
         "height": height,
         "side": side,
@@ -231,7 +190,7 @@ def create_door(
         "swingDirection": swing_direction,
         "wallId": wall_id,
     }
-    return _run(_client.create_node(node, parent_id=wall_id))
+    return _extract(_run(_client.create_node(node, parent_id=wall_id)))
 
 
 @tool
@@ -245,31 +204,20 @@ def create_window(
     side: str = "front",
     sill_height: float = 0.9,
 ) -> dict:
-    """Create a window on a wall.
-
-    Args:
-        wall_id: ID of the parent wall (CRITICAL — used for CSG).
-        wall_start: Wall start point [x, z].
-        wall_end: Wall end point [x, z].
-        position_along_wall: Distance in metres from wall start to window centre.
-        width: Window width in metres (default 1.5).
-        height: Window height in metres (default 1.5).
-        side: Which side the window faces ('front' or 'back').
-        sill_height: Height of the window sill above floor (default 0.9).
-    """
+    """Create a window on a wall. position_along_wall is distance in metres from wall START.
+    IMPORTANT: parentId MUST be the wall_id for CSG cutouts to work."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     x_local = _wall_local_x(wall_start, wall_end, position_along_wall)
     node = {
-        "id": uuid4().hex[:12],
-        "type": "WindowNode",
+        "type": "window",
         "position": [x_local, sill_height + height / 2, 0],
+        "rotation": [0, 0, 0],
         "width": width,
         "height": height,
         "side": side,
-        "sillHeight": sill_height,
         "wallId": wall_id,
     }
-    return _run(_client.create_node(node, parent_id=wall_id))
+    return _extract(_run(_client.create_node(node, parent_id=wall_id)))
 
 
 @tool
@@ -281,59 +229,47 @@ def create_roof(
     roof_height: float = 2.5,
     wall_height: float = 0.5,
 ) -> dict:
-    """Create a roof on the given level (RoofNode + RoofSegmentNode).
-
-    Args:
-        level_id: Parent level node ID.
-        roof_type: Roof style ('flat', 'gable', or 'hip').
-        width: Roof span along X axis in metres.
-        depth: Roof span along Z axis in metres.
-        roof_height: Ridge height above the wall top in metres.
-        wall_height: Short wall (knee wall) height in metres.
-    """
+    """Create a roof on the top level. Creates RoofNode (container) + RoofSegmentNode (geometry)."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
 
-    roof_id = uuid4().hex[:12]
+    # Step 1: Create RoofNode (container — only position/rotation, no geometry)
     roof_node = {
-        "id": roof_id,
-        "type": "RoofNode",
-        "roofType": roof_type,
-        "width": width,
-        "depth": depth,
-        "roofHeight": roof_height,
-        "wallHeight": wall_height,
+        "type": "roof",
+        "position": [0, 0, 0],
+        "rotation": 0,
     }
-    result_roof = _run(_client.create_node(roof_node, parent_id=level_id))
+    roof_result = _extract(_run(_client.create_node(roof_node, parent_id=level_id)))
+    roof_id = roof_result.get("nodeId")
 
-    segment_id = uuid4().hex[:12]
+    # Step 2: Create RoofSegmentNode (geometry — child of roof)
     segment_node = {
-        "id": segment_id,
-        "type": "RoofSegmentNode",
+        "type": "roof-segment",
+        "roofType": roof_type,
+        "position": [0, 0, 0],
+        "rotation": 0,
         "width": width,
         "depth": depth,
-        "roofHeight": roof_height,
         "wallHeight": wall_height,
+        "roofHeight": roof_height,
+        "wallThickness": 0.1,
+        "deckThickness": 0.1,
+        "overhang": 0.3,
+        "shingleThickness": 0.05,
     }
-    _run(_client.create_node(segment_node, parent_id=roof_id))
+    seg_result = _extract(_run(_client.create_node(segment_node, parent_id=roof_id)))
 
-    return {"roofId": roof_id, "segmentId": segment_id}
+    return {"roofId": roof_id, "segmentId": seg_result.get("nodeId")}
 
 
 @tool
 def create_level(building_id: str, level_number: int) -> dict:
-    """Create a new level (storey) under a building node.
-
-    Args:
-        building_id: Parent building node ID.
-        level_number: Zero-based index of the level.
-    """
+    """Create a new level (storey) under a building node."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     node = {
-        "id": uuid4().hex[:12],
-        "type": "LevelNode",
-        "levelNumber": level_number,
+        "type": "level",
+        "level": level_number,
     }
-    return _run(_client.create_node(node, parent_id=building_id))
+    return _extract(_run(_client.create_node(node, parent_id=building_id)))
 
 
 @tool
@@ -350,21 +286,7 @@ def create_item(
     wall_t: float | None = None,
     side: str | None = None,
 ) -> dict:
-    """Place a furniture / fixture item into the scene.
-
-    Args:
-        parent_id: Parent node ID (level for floor items, wall for wall-mounted).
-        asset_id: Unique asset identifier from the catalog.
-        asset_name: Human-readable asset name.
-        asset_src: Source URL / path for the 3-D model.
-        asset_category: Asset category string.
-        dimensions: Bounding-box [width, height, depth] in metres.
-        position: Placement position [x, y, z].
-        rotation: Optional rotation [rx, ry, rz] in degrees.
-        wall_id: Optional parent wall ID for wall-mounted items.
-        wall_t: Optional parametric position along the wall (0-1).
-        side: Optional wall side ('front' or 'back').
-    """
+    """Place a furniture / fixture item. parent_id is the level (floor items) or wall (wall-mounted)."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
 
     asset = {
@@ -380,13 +302,12 @@ def create_item(
     }
 
     node: dict[str, Any] = {
-        "id": uuid4().hex[:12],
-        "type": "ItemNode",
+        "type": "item",
         "asset": asset,
         "position": position,
+        "rotation": rotation or [0, 0, 0],
+        "scale": [1, 1, 1],
     }
-    if rotation is not None:
-        node["rotation"] = rotation
     if wall_id is not None:
         node["wallId"] = wall_id
     if wall_t is not None:
@@ -394,7 +315,7 @@ def create_item(
     if side is not None:
         node["side"] = side
 
-    return _run(_client.create_node(node, parent_id=parent_id))
+    return _extract(_run(_client.create_node(node, parent_id=parent_id)))
 
 
 # ---------------------------------------------------------------------------
@@ -404,16 +325,12 @@ def create_item(
 
 @tool
 def read_assets(category: str | None = None) -> list:
-    """Read the available asset catalog, optionally filtered by category.
-
-    Args:
-        category: Optional category to filter assets by.
-    """
+    """Read the available asset catalog, optionally filtered by category."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
     result = _run(_client.read_assets(category=category))
-    # The client returns a dict with the response; extract the list if present.
+    # Client returns {"id": ..., "ok": true, "data": [...]}
     if isinstance(result, dict):
-        return result.get("assets", result)
+        return result.get("data", result)
     return result
 
 
@@ -424,13 +341,9 @@ def read_assets(category: str | None = None) -> list:
 
 @tool
 def select_level(level_id: str) -> dict:
-    """Select a level in the editor.
-
-    Args:
-        level_id: ID of the level node to select.
-    """
+    """Select a level in the editor."""
     assert _client is not None, "EditorClient not initialised — call set_client() first"
-    return _run(_client.set_selection(level_id=level_id))
+    return _run(_client.set_selection(levelId=level_id))
 
 
 @tool

@@ -118,7 +118,7 @@ class EditorClient:
         """Read nodes, optionally filtered by *node_type*."""
         params: dict[str, Any] = {}
         if node_type is not None:
-            params["node_type"] = node_type
+            params["type"] = node_type
         return await self.send("read_nodes", **params)
 
     async def create_node(
@@ -127,7 +127,7 @@ class EditorClient:
         """Create a single node, optionally under *parent_id*."""
         params: dict[str, Any] = {"node": node}
         if parent_id is not None:
-            params["parent_id"] = parent_id
+            params["parentId"] = parent_id
         return await self.send("create_node", **params)
 
     async def create_nodes(self, ops: list[dict[str, Any]]) -> dict[str, Any]:
@@ -138,19 +138,25 @@ class EditorClient:
         self, node_id: str, data: dict[str, Any]
     ) -> dict[str, Any]:
         """Update a node by *node_id* with the given *data*."""
-        return await self.send("update_node", node_id=node_id, data=data)
+        return await self.send("update_node", nodeId=node_id, data=data)
 
     async def delete_node(self, node_id: str) -> dict[str, Any]:
         """Delete a single node by *node_id*."""
-        return await self.send("delete_node", node_id=node_id)
+        return await self.send("delete_node", nodeId=node_id)
 
     async def delete_nodes(self, ids: list[str]) -> dict[str, Any]:
         """Delete multiple nodes by their IDs."""
-        return await self.send("delete_nodes", ids=ids)
+        return await self.send("delete_nodes", nodeIds=ids)
 
     async def set_selection(self, **kwargs: Any) -> dict[str, Any]:
         """Set the current selection in the editor."""
-        return await self.send("set_selection", **kwargs)
+        # The TypeScript handler expects a nested `selection` object
+        selection: dict[str, Any] = {}
+        key_map = {"building_id": "buildingId", "level_id": "levelId",
+                    "zone_id": "zoneId", "selected_ids": "selectedIds"}
+        for k, v in kwargs.items():
+            selection[key_map.get(k, k)] = v
+        return await self.send("set_selection", selection=selection)
 
     async def undo(self) -> dict[str, Any]:
         """Undo the last operation."""
