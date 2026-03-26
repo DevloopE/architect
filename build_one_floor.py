@@ -1015,6 +1015,10 @@ async def main():
     print("  Multiple separate volumes, covered walkways")
     print("  3.5m ground floor / 3.0m upper floor")
     print(f"{'='*60}")
+
+    # Signal build complete — stops recording, enables save in dashboard
+    await b.cmd("build_end")
+    print("\n  Pipeline recorded. Use dashboard 'Save .architect' to save.")
     await b.close()
 
 if __name__=="__main__":
