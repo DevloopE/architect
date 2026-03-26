@@ -208,15 +208,30 @@ async def furnish_room(b, L, x0, z0):
 
 async def main():
     b=B();await b.connect();print("[The Courtyard Hotel] Connected\n")
-    await b.cmd("clear")
+
+    # Clear triggers browser reload — must reconnect after
+    print("  Clearing scene (browser will reload)...")
+    try:
+        await b.cmd("clear")
+    except:
+        pass
+    await b.close()
+    print("  Waiting for browser to reload...")
+    await asyncio.sleep(10)
+    await b.connect()
+    print("  Reconnected")
+
     bid=lid0=None
-    for _ in range(10):
+    for _ in range(15):
         await asyncio.sleep(1)
-        st=await b.cmd("read_state");nodes=st.get("nodes",{})
-        for nid,n in nodes.items():
-            if n.get("type")=="building":bid=nid
-            if n.get("type")=="level":lid0=nid
-        if bid and lid0:break
+        try:
+            st=await b.cmd("read_state");nodes=st.get("nodes",{})
+            for nid,n in nodes.items():
+                if n.get("type")=="building":bid=nid
+                if n.get("type")=="level":lid0=nid
+            if bid and lid0:break
+        except:
+            pass
     if not bid or not lid0:print("ERROR: No default scene");await b.close();return
 
     L=lid0

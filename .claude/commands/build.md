@@ -66,6 +66,13 @@ Design an architectural plan following these principles:
 - 3.2-3.5m ceiling heights for grand spaces
 - Properly furnished: sofas, dining tables with chairs, beds with nightstands, kitchen appliances
 
+### Accessibility & Circulation (MANDATORY CHECK)
+- **Every enclosed room MUST have a door.** No exceptions. Verify after creating walls: count rooms, count doors, rooms without doors = design failure
+- **Every habitable room MUST have a window** on an exterior wall. Bedrooms, kitchens, living rooms, offices, bathrooms all need windows. Only hallways, stairwells, closets are exempt
+- **Multi-story = stairwell required.** Same position on every floor. Hole in upper slabs. Door from stairwell to hallway on each floor. Without this, upper floors are unreachable
+- **Door connectivity test:** From the front door, can you walk through doors to reach every room? If any room is isolated, add a door. Common misses: bathrooms, second wings, guest pavilions missing entrance doors
+- **Exterior doors:** Every separate building volume (guest pavilion, pool house, etc.) needs at least one door on an exterior wall for entry
+
 ## Step 4: Write the build script
 
 Write a Python script to `build_one_floor.py` following the reference implementation's WebSocket client pattern.

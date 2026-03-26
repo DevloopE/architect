@@ -80,6 +80,37 @@ async def cmd(self, c, **kw):
 
 22. **Scale pillars for columns.** The `pillar` asset is only 1.3m tall. Scale it `[1, 2.5, 1]` to make proper structural columns for terraces and carports.
 
+## Accessibility & Circulation Rules
+
+28. **Every enclosed room MUST have at least one door.** Before finishing a floor, verify that every zone/room has a door connecting it to a hallway or adjacent room. A room with no door is inaccessible — this is a critical design failure. Checklist after laying out walls:
+    - Count rooms (zones)
+    - Count doors
+    - Verify: doors >= rooms (some rooms may need 2 doors)
+    - Every bathroom has a door
+    - Every bedroom has a door
+    - Every closet/utility has a door
+
+29. **Every room should have at least one window on an exterior wall.** Exceptions: hallways, stairwells, closets, utility rooms. But bedrooms, living rooms, kitchens, bathrooms, offices MUST have windows. Bathrooms can have smaller windows (1.0m) but still need one.
+
+30. **Multi-story buildings MUST have a stairwell.** If the building has more than 1 level:
+    - Designate a stairwell zone on EVERY floor in the same position
+    - Cut a hole in the slab on upper floors for the stairwell area
+    - The stairwell needs doors connecting to hallways/landings on each floor
+    - Without a stairwell, upper floors are unreachable — this breaks the design
+
+31. **Door connectivity graph.** Think of the building as a graph: rooms are nodes, doors are edges. Starting from the front door, every room must be reachable by walking through doors. If any room is disconnected from the graph, add a door. Common mistakes:
+    - Bathroom with no door (forgotten)
+    - Second wing with no connecting door to hallway
+    - Upper floor with no stairwell connection
+    - Guest pavilion with no entrance door on exterior wall
+
+32. **Clear-then-reconnect pattern for multi-story.** When building upper floors:
+    - Create the level node as child of building
+    - The `create_level` response returns the new level ID
+    - If it returns None/undefined, read state to find it
+    - Set selection to the new level before creating walls on it
+    - Cut stairwell hole in the slab with `holes` field
+
 ## Browser Error Monitoring
 
 27. **Browser errors are forwarded to Python.** The BridgeProvider intercepts `console.error` and `window.onerror`, sending them to the Python client via `{"type": "browser_error", "payload": "..."}`. The client stores them in `client.browser_errors` and prints `[BROWSER ERROR]` to terminal. After building, check `client.browser_errors` — if non-empty, something went wrong in the renderer.
