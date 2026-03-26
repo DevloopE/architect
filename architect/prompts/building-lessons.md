@@ -41,7 +41,7 @@ async def cmd(self, c, **kw):
 
 8. **Reuse the default building/level.** `loadScene()` auto-creates Site > Building > Level(0). Don't create new ones — find them in state with `type == "building"` and `type == "level"`.
 
-8b. **Ground floor is level 0, label it as "G" or "Ground".** Upper floors are level 1, 2, 3... Only create a basement (level -1) if explicitly requested. The default scene gives you level 0 (ground) — reuse it. When creating upper floors, use `level: 1`, `level: 2`, etc.
+8b. **Level 0 = Basement. Level 1 = Ground floor.** The default scene gives level 0, which is the basement. If the user does NOT ask for a basement, update it to `level: 1` (ground) or create a new level with `level: 1`. Upper floors are level 2, 3, 4... Only use level 0 if the user explicitly asks for a basement. Label: 0=B, 1=G, 2=1F, 3=2F, etc.
 
 9. **`children: []` is required** on wall, level, ceiling, roof nodes. The renderers call `.map()` on children. If missing, the scene crashes. The Zod parse handles this, but if it fails, the fallback must include `children: []`.
 
