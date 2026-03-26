@@ -175,6 +175,19 @@ class EditorClient:
         """Clear the editor scene."""
         return await self.send("clear")
 
+    async def save_scene(self, filepath: str) -> None:
+        """Export current scene and save to a JSON file."""
+        import pathlib
+        resp = await self.send("export")
+        data = resp.get("data", resp)
+        pathlib.Path(filepath).write_text(json.dumps(data, indent=2))
+
+    async def load_scene(self, filepath: str) -> dict[str, Any]:
+        """Load a scene from a JSON file into the editor."""
+        import pathlib
+        data = json.loads(pathlib.Path(filepath).read_text())
+        return await self.send("import", nodes=data["nodes"], rootNodeIds=data["rootNodeIds"])
+
     async def read_assets(self, category: str | None = None) -> dict[str, Any]:
         """Read available assets, optionally filtered by *category*."""
         params: dict[str, Any] = {}
