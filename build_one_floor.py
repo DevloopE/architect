@@ -159,29 +159,16 @@ async def WN(b,wo,pos,wd=2.0,ht=1.8,sl=0.8):
 async def main():
     b=B();await b.connect();print("[Presidential Residence] Connected\n")
 
-    # Clear triggers browser reload -- must reconnect after
-    print("  Clearing scene (browser will reload)...")
-    try:
-        await b.cmd("clear")
-    except:
-        pass
-    await b.close()
-    print("  Waiting for browser to reload...")
-    await asyncio.sleep(10)
-    await b.connect()
-    print("  Reconnected")
+    # Clear scene (no reload needed)
+    print("  Clearing scene...")
+    await b.cmd("clear")
+    await asyncio.sleep(1)
 
     bid=lid0=None
-    for _ in range(15):
-        await asyncio.sleep(1)
-        try:
-            st=await b.cmd("read_state");nodes=st.get("nodes",{})
-            for nid,n in nodes.items():
-                if n.get("type")=="building":bid=nid
-                if n.get("type")=="level":lid0=nid
-            if bid and lid0:break
-        except:
-            pass
+    st=await b.cmd("read_state");nodes=st.get("nodes",{})
+    for nid,n in nodes.items():
+        if n.get("type")=="building":bid=nid
+        if n.get("type")=="level":lid0=nid
     if not bid or not lid0:print("ERROR: No default scene");await b.close();return
 
     # Signal build start

@@ -83,6 +83,21 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Kill orphaned processes from previous runs
+  const { execSync } = require('child_process')
+  for (const port of [3002, 3100]) {
+    try {
+      if (process.platform === 'win32') {
+        const out = execSync(`netstat -ano | findstr ":${port}" | findstr "LISTENING"`, { encoding: 'utf8' })
+        const pids = [...new Set(out.split('\n').map(l => l.trim().split(/\s+/).pop()).filter(Boolean))]
+        for (const pid of pids) { try { execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' }) } catch {} }
+      } else {
+        execSync(`lsof -ti:${port} | xargs kill -9 2>/dev/null`, { shell: true, stdio: 'ignore' })
+      }
+    } catch {}
+  }
+  await new Promise(r => setTimeout(r, 1000))
+
   console.log('[Architect] Starting relay...')
   startRelay()
 

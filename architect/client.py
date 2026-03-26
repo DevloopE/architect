@@ -50,6 +50,8 @@ class EditorClient:
                 # Browser error forwarding
                 if msg.get("type") == "browser_error":
                     error_msg = msg.get("payload", "")
+                    if len(self.browser_errors) > 500:
+                        self.browser_errors.pop(0)
                     self.browser_errors.append(error_msg)
                     print(f"  [BROWSER ERROR] {error_msg[:200]}")
                     continue
