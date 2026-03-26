@@ -50,11 +50,9 @@ def _wall_local_x(
     wall_end: list[float],
     position_along_wall: float,
 ) -> float:
-    """Convert a distance-from-start to a wall-local centred x coordinate."""
-    dx = wall_end[0] - wall_start[0]
-    dz = wall_end[1] - wall_start[1]
-    wall_length = math.sqrt(dx * dx + dz * dz)
-    return position_along_wall - (wall_length / 2)
+    """Door/window position[0] is distance from wall START (not center).
+    The editor's wall-local coordinate system uses start-relative x."""
+    return position_along_wall
 
 
 def _extract(result: dict) -> dict:
