@@ -19,7 +19,7 @@ Return **only** valid JSON (no markdown fences, no commentary). The schema:
   "roofType": "flat | gable | hip",
   "levels": [
     {
-      "level_index": 0,                  // 0 = ground floor
+      "level_index": 1,                  // 1 = ground floor, 0 = basement
       "rooms": [
         {
           "type": "<room_type>",

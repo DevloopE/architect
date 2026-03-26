@@ -219,7 +219,7 @@ async def main():
     await place(lid1, SINK, [2, 0, 7.5])
     await place(lid1, SHOWER, [5, 0, 9])
 
-    print("  First floor DONE!")
+    print("  Second floor DONE!")
 
     # =================== ROOF ===================
     print("\n--- Roof ---")

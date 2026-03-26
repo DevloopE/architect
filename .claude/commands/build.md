@@ -128,10 +128,10 @@ async def cmd(self, c, **kw):
 ```
 
 ### Level numbering
-- Level 0 = Basement (only if user asks for basement)
-- Level 1 = Ground floor (default start — reuse default level 0 from scene but update it to level 1, OR create a new level 1)
+- Level 0 = Basement (only if user explicitly asks for basement — create with `"level": 0`)
+- Level 1 = Ground floor (default — the editor auto-creates this)
 - Level 2 = First floor, Level 3 = Second floor, etc.
-- The default scene gives level 0 — if no basement needed, update it: `await b.cmd("update_node", nodeId=level_id, data={"level": 1})`
+- The default scene gives level 1 (ground floor). Reuse it directly — no update needed.
 
 ### Roofs — correct positioning
 Roofs work but ONLY on simple rectangular volumes. For compound/L/T/U layouts, add one roof per rectangular volume.
@@ -158,7 +158,7 @@ Roofs work but ONLY on simple rectangular volumes. For compound/L/T/U layouts, a
 - RoofNode has NO geometry fields
 
 ### Outdoor items
-- Children of level 0
+- Children of ground floor level (level 1)
 - Can use negative coordinates (outside building footprint)
 - Scale pillars `[1, 2.5, 1]` for structural columns
 - Pool = slab at elevation -0.5 + blue zone
@@ -177,13 +177,33 @@ start http://localhost:3002 && sleep 15 && python build_one_floor.py
 
 If it fails with "No default scene", the browser wasn't connected. Wait and retry.
 
-## Available Furniture Assets
+## Available Furniture Assets (140 items — USE VARIETY)
 
-**Living:** sofa, lounge-chair, livingroom-chair, coffee-table, tv-stand, floor-lamp, rectangular-carpet, round-carpet, piano, indoor-plant, small-indoor-plant, cactus
-**Kitchen:** fridge, stove, kitchen-counter, kitchen-cabinet, microwave, stool, dining-table, dining-chair
-**Bedroom:** double-bed, single-bed, bunkbed, bedside-table, closet, dresser, table-lamp
-**Bathroom:** toilet, bathroom-sink, shower-square, bathtub, washing-machine
-**Office:** office-table, office-chair, bookshelf, shelf
-**Outdoor:** tree, fir-tree, palm, bush, patio-umbrella, sunbed, high-fence, medium-fence, low-fence, tesla, parking-spot, basket-hoop, outdoor-playhouse, ball, scooter, pillar
-**Leisure:** pool-table, threadmill, barbell-stand, guitar
-**Decor:** coat-rack, trash-bin, round-mirror, picture, books, column, stairs
+**IMPORTANT:** Use a WIDE variety of items. Don't reuse the same 10 items. Every room should feel distinct and lived-in. Use decor, plants, wall art, rugs, lamps, and small accessories — not just the main furniture pieces.
+
+**Seating:** sofa, lounge-chair, livingroom-chair, bean-bag, couch-medium, couch-small, stool, dining-chair, office-chair
+**Tables:** dining-table, coffee-table, office-table, desk, table, bedside-table, tv-stand
+**Beds:** double-bed, single-bed, bunkbed
+**Storage:** closet, dresser, bookshelf, shelf, coat-rack, trash-bin
+**Lighting:** floor-lamp, table-lamp, ceiling-lamp, recessed-light, ceiling-light, circular-ceiling-light, rectangular-ceiling-light (ceiling lights attach to ceiling — use liberally for modern interiors)
+**Rugs & Decor:** rectangular-carpet, round-carpet, round-mirror, rectangular-mirror, picture, wall-art-06, books, cactus, small-indoor-plant, indoor-plant, suspended-fireplace, guitar, piano, easel
+**Structure:** column, stairs, pillar (scale [1,2.5,1] for structural columns)
+**Kitchen:** fridge, kitchen-fridge, freezer, stove, hood, kitchen-counter, kitchen-cabinet, small-kitchen-cabinet, kitchen-shelf, kitchen, microwave, wine-bottle, fruits, cutting-board, frying-pan, kitchen-utensils
+**Bathroom:** toilet, bathroom-sink, wall-sink, sink-cabinet, shower-square, shower-angle, bathtub, washing-machine, toilet-brush, toilet-paper, shower-rug, laundry-bag, drying-rack
+**Appliances:** television, flat-screen-tv, computer, stereo-speaker, coffee-machine, toaster, kettle, iron, sewing-machine, air-conditioning, air-conditioner, ac-block, thermostat, ceiling-fan
+**Safety:** fire-extinguisher, fire-alarm, fire-detector, smoke-detector, hydrant, alarm-keypad, exit-sign, electric-panel, sprinkler, ev-wall-charger
+**Outdoor:** tree, fir-tree, palm, bush, hedge, patio-umbrella, sunbed, high-fence, medium-fence, low-fence, fence, tesla, parking-spot, basket-hoop, outdoor-playhouse, ball, scooter, skate
+**Fitness:** threadmill, exercise-bike, barbell-stand, barbell, pool-table
+**Kids:** toy, car-toy, outdoor-playhouse, bunkbed
+**Doors (item type):** door, glass-door, door-bar, door-with-bar
+**Windows (item type):** window-simple, window-double, window-rectangle, window-large, window-round, window-small, window-small-2, window-square
+**Laundry:** ironing-board, iron, washing-machine, drying-rack, laundry-bag
+
+### Furnishing guidelines
+- **Living room:** sofa + coffee-table + tv-stand + floor-lamp + rectangular-carpet + indoor-plant + picture/wall-art-06 on walls + recessed-lights on ceiling
+- **Kitchen:** kitchen-counter + stove + hood + fridge + microwave + dining-table + dining-chairs + kitchen-utensils + fruits on counter + ceiling-light
+- **Bedroom:** bed + 2x bedside-table + table-lamp + closet + dresser + rectangular-carpet + picture + small-indoor-plant
+- **Bathroom:** toilet + sink (bathroom-sink or wall-sink) + shower-square or bathtub + toilet-brush + toilet-paper + shower-rug + rectangular-mirror on wall
+- **Office:** desk or office-table + office-chair + bookshelf + books + table-lamp + small-indoor-plant + computer
+- **Hallway:** coat-rack + round-mirror or picture on wall + small-indoor-plant + recessed-lights
+- **Outdoor:** trees around perimeter + bushes for garden beds + hedge for privacy + patio-umbrella + sunbed by pool + tesla in parking

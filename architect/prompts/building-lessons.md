@@ -47,9 +47,9 @@ await asyncio.sleep(1)
 st = await b.cmd("read_state")
 ```
 
-8. **Reuse the default building/level.** `loadScene()` auto-creates Site > Building > Level(0). Don't create new ones — find them in state with `type == "building"` and `type == "level"`.
+8. **Reuse the default building/level.** `loadScene()` auto-creates Site > Building > Level(1). Don't create new ones — find them in state with `type == "building"` and `type == "level"`.
 
-8b. **Level 0 = Basement. Level 1 = Ground floor.** The default scene gives level 0, which is the basement. If the user does NOT ask for a basement, update it to `level: 1` (ground) or create a new level with `level: 1`. Upper floors are level 2, 3, 4... Only use level 0 if the user explicitly asks for a basement. Label: 0=B, 1=G, 2=1F, 3=2F, etc.
+8b. **Level 1 = Ground floor (default). Level 0 = Basement (only if requested).** The default scene gives level 1 (ground floor). Reuse it directly. Upper floors are level 2, 3, 4... Only create level 0 if the user explicitly asks for a basement. Label: 0=B, 1=G, 2=1F, 3=2F, etc.
 
 9. **`children: []` is required** on wall, level, ceiling, roof nodes. The renderers call `.map()` on children. If missing, the scene crashes. The Zod parse handles this, but if it fails, the fallback must include `children: []`.
 
@@ -86,7 +86,7 @@ st = await b.cmd("read_state")
 
 20. **Furniture rotation is in radians.** `[0, rotation_y, 0]` where rotation_y is around the Y axis. Common values: `0` (default), `math.pi/2` (90°), `math.pi` (180°), `-math.pi/2` (270°).
 
-21. **Outdoor items are children of level 0.** Place trees, bushes, cars, etc. as children of the ground floor level, using world coordinates (can be negative for items outside the building footprint).
+21. **Outdoor items are children of ground floor (level 1).** Place trees, bushes, cars, etc. as children of the ground floor level, using world coordinates (can be negative for items outside the building footprint).
 
 22. **Scale pillars for columns.** The `pillar` asset is only 1.3m tall. Scale it `[1, 2.5, 1]` to make proper structural columns for terraces and carports.
 
@@ -96,6 +96,19 @@ st = await b.cmd("read_state")
     - Max 4-6 palms
     - Space them out — they're accents, not a forest
     - Perimeter screening: use 3-4 fir trees on each side, not a wall of them
+
+22c. **USE THE FULL 140-ITEM CATALOG.** Every room should feel lived-in and distinct. Don't reuse the same few items everywhere. Use decor, accessories, wall art, rugs, plants, and lighting — not just the core furniture. Room recipes:
+    - **Living:** sofa/couch-medium/bean-bag + coffee-table + tv-stand + floor-lamp + rectangular-carpet + indoor-plant + picture/wall-art-06 + recessed-light on ceiling
+    - **Kitchen:** kitchen-counter + stove + hood + fridge/kitchen-fridge + microwave + dining-table + dining-chairs + fruits + kitchen-utensils + ceiling-light
+    - **Bedroom:** double-bed/single-bed + 2x bedside-table + table-lamp + closet + dresser + rectangular-carpet + picture + small-indoor-plant
+    - **Bathroom:** toilet + bathroom-sink/wall-sink/sink-cabinet + shower-square/shower-angle/bathtub + toilet-brush + toilet-paper + shower-rug + rectangular-mirror
+    - **Office:** desk/office-table + office-chair + bookshelf + books + computer + table-lamp + small-indoor-plant
+    - **Hallway:** coat-rack + round-mirror/picture + small-indoor-plant + recessed-light
+    - **Gym:** threadmill + exercise-bike + barbell-stand + barbell + rectangular-carpet
+    - **Kids room:** bunkbed/single-bed + toy + car-toy + easel + bookshelf + round-carpet
+    - Use ceiling lighting (ceiling-lamp, recessed-light, circular-ceiling-light, rectangular-ceiling-light) in every room
+    - Use wall-mounted items (picture, wall-art-06, rectangular-mirror, round-mirror, shelf) to fill blank walls
+    - Safety items (fire-extinguisher, smoke-detector, exit-sign) in hallways and kitchens
 
 ## Accessibility & Circulation Rules
 

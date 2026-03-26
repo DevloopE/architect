@@ -132,7 +132,7 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 
 **LevelNode:**
 
-- `level: number` (floor index, 0 = ground)
+- `level: number` (floor index, 1 = ground, 0 = basement)
 
 **WallNode:**
 
