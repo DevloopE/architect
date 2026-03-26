@@ -56,6 +56,7 @@ Python (WebSocket client)          Browser (WebSocket handler)
 A lightweight WebSocket server runs inside the Next.js app (or as a standalone script injected into the page). The browser tab connects on load.
 
 **Implementation:** Add a `BridgeProvider` React component at the app root that:
+
 1. Opens a WebSocket server on `ws://localhost:3100`
 2. Listens for incoming JSON commands
 3. Dispatches to the appropriate Zustand store action
@@ -67,70 +68,74 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 
 #### State Reading
 
-| Command | Returns |
-|---------|---------|
-| `{"cmd": "read_state"}` | Full scene: all nodes, root IDs, selection, viewer/editor settings |
-| `{"cmd": "read_nodes"}` | All nodes as flat dict |
-| `{"cmd": "read_nodes", "type": "wall"}` | Filter nodes by type |
-| `{"cmd": "read_node", "nodeId": "..."}` | Single node with all properties |
-| `{"cmd": "read_viewer"}` | Camera mode, theme, unit, level mode, wall mode, visibility toggles |
-| `{"cmd": "read_editor"}` | Phase, mode, active tool, structure layer |
-| `{"cmd": "read_assets", "category": "..."}` | Available furniture/fixture assets from catalog |
+| Command                                     | Returns                                                             |
+| ------------------------------------------- | ------------------------------------------------------------------- |
+| `{"cmd": "read_state"}`                     | Full scene: all nodes, root IDs, selection, viewer/editor settings  |
+| `{"cmd": "read_nodes"}`                     | All nodes as flat dict                                              |
+| `{"cmd": "read_nodes", "type": "wall"}`     | Filter nodes by type                                                |
+| `{"cmd": "read_node", "nodeId": "..."}`     | Single node with all properties                                     |
+| `{"cmd": "read_viewer"}`                    | Camera mode, theme, unit, level mode, wall mode, visibility toggles |
+| `{"cmd": "read_editor"}`                    | Phase, mode, active tool, structure layer                           |
+| `{"cmd": "read_assets", "category": "..."}` | Available furniture/fixture assets from catalog                     |
 
 #### Node CRUD
 
-| Command | Description |
-|---------|-------------|
-| `{"cmd": "create_node", "node": {...}, "parentId": "..."}` | Create node (any type), returns created node with generated ID |
-| `{"cmd": "create_nodes", "ops": [{"node": {...}, "parentId": "..."}]}` | Batch create |
-| `{"cmd": "update_node", "nodeId": "...", "data": {...}}` | Partial update any node property |
-| `{"cmd": "update_nodes", "updates": [{"id": "...", "data": {...}}]}` | Batch update |
-| `{"cmd": "delete_node", "nodeId": "..."}` | Delete node + children recursively |
-| `{"cmd": "delete_nodes", "ids": ["..."]}` | Batch delete |
+| Command                                                                | Description                                                    |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `{"cmd": "create_node", "node": {...}, "parentId": "..."}`             | Create node (any type), returns created node with generated ID |
+| `{"cmd": "create_nodes", "ops": [{"node": {...}, "parentId": "..."}]}` | Batch create                                                   |
+| `{"cmd": "update_node", "nodeId": "...", "data": {...}}`               | Partial update any node property                               |
+| `{"cmd": "update_nodes", "updates": [{"id": "...", "data": {...}}]}`   | Batch update                                                   |
+| `{"cmd": "delete_node", "nodeId": "..."}`                              | Delete node + children recursively                             |
+| `{"cmd": "delete_nodes", "ids": ["..."]}`                              | Batch delete                                                   |
 
 **ID Generation:** The browser-side handler runs node data through the appropriate Zod schema's `.parse()` method, which auto-generates IDs in the correct `{type}_{nanoid}` format. The Python client does NOT need to generate IDs.
 
 #### Viewer/Editor Control
 
-| Command | Description |
-|---------|-------------|
-| `{"cmd": "set_selection", "buildingId?": "...", "levelId?": "...", "zoneId?": "...", "selectedIds?": [...]}` | Set selection. Note: changing a parent resets child selections (hierarchy cascade). |
-| `{"cmd": "set_camera", "cameraMode?": "...", "levelMode?": "...", "wallMode?": "..."}` | Camera/display mode |
-| `{"cmd": "set_display", "showScans?": bool, "showGuides?": bool, "showGrid?": bool, "theme?": "...", "unit?": "..."}` | Display settings |
-| `{"cmd": "set_tool", "tool?": "...", "phase?": "...", "mode?": "..."}` | Active tool/phase/mode |
+| Command                                                                                                               | Description                                                                         |
+| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `{"cmd": "set_selection", "buildingId?": "...", "levelId?": "...", "zoneId?": "...", "selectedIds?": [...]}`          | Set selection. Note: changing a parent resets child selections (hierarchy cascade). |
+| `{"cmd": "set_camera", "cameraMode?": "...", "levelMode?": "...", "wallMode?": "..."}`                                | Camera/display mode                                                                 |
+| `{"cmd": "set_display", "showScans?": bool, "showGuides?": bool, "showGrid?": bool, "theme?": "...", "unit?": "..."}` | Display settings                                                                    |
+| `{"cmd": "set_tool", "tool?": "...", "phase?": "...", "mode?": "..."}`                                                | Active tool/phase/mode                                                              |
 
 #### Actions
 
-| Command | Description |
-|---------|-------------|
-| `{"cmd": "undo"}` | Undo last action |
-| `{"cmd": "redo"}` | Redo |
-| `{"cmd": "clear"}` | Clear scene (note: reloads default Site > Building > Level hierarchy) |
-| `{"cmd": "export"}` | Export scene data as JSON |
+| Command             | Description                                                           |
+| ------------------- | --------------------------------------------------------------------- |
+| `{"cmd": "undo"}`   | Undo last action                                                      |
+| `{"cmd": "redo"}`   | Redo                                                                  |
+| `{"cmd": "clear"}`  | Clear scene (note: reloads default Site > Building > Level hierarchy) |
+| `{"cmd": "export"}` | Export scene data as JSON                                             |
 
 #### Collections
 
-| Command | Description |
-|---------|-------------|
-| `{"cmd": "create_collection", "name": "...", "nodeIds?": [...]}` | Create collection |
-| `{"cmd": "update_collection", "collectionId": "...", "data": {...}}` | Update name/color |
-| `{"cmd": "delete_collection", "collectionId": "..."}` | Delete collection |
-| `{"cmd": "add_to_collection", "collectionId": "...", "nodeId": "..."}` | Add node |
-| `{"cmd": "remove_from_collection", "collectionId": "...", "nodeId": "..."}` | Remove node |
+| Command                                                                     | Description       |
+| --------------------------------------------------------------------------- | ----------------- |
+| `{"cmd": "create_collection", "name": "...", "nodeIds?": [...]}`            | Create collection |
+| `{"cmd": "update_collection", "collectionId": "...", "data": {...}}`        | Update name/color |
+| `{"cmd": "delete_collection", "collectionId": "..."}`                       | Delete collection |
+| `{"cmd": "add_to_collection", "collectionId": "...", "nodeId": "..."}`      | Add node          |
+| `{"cmd": "remove_from_collection", "collectionId": "...", "nodeId": "..."}` | Remove node       |
 
 ### Supported Node Types and Their Full Parameters
 
 **SiteNode:**
+
 - `polygon?: {type: 'polygon', points: [number, number][]}`
 
 **BuildingNode:**
+
 - `position: [x, y, z]`
 - `rotation: [x, y, z]`
 
 **LevelNode:**
+
 - `level: number` (floor index, 0 = ground)
 
 **WallNode:**
+
 - `start: [x, z]` -- start point on 2D floor plan
 - `end: [x, z]` -- end point on 2D floor plan
 - `thickness?: number` (default 0.1m)
@@ -139,25 +144,30 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 - `backSide: 'interior' | 'exterior' | 'unknown'`
 
 **SlabNode:**
+
 - `polygon: [x, z][]` -- floor outline
 - `holes?: [x, z][][]` -- cutouts (e.g., stairwell)
 - `elevation: number` (default 0.05m)
 
 **CeilingNode:**
+
 - `polygon: [x, z][]` -- ceiling outline
 - `holes?: [x, z][][]`
 - `height: number` (default 2.5m)
 
 **ZoneNode:**
+
 - `name: string`
 - `polygon: [x, z][]`
 - `color: string` (hex, e.g., '#3b82f6')
 
 **RoofNode** (container -- parent of RoofSegmentNodes):
+
 - `position: [x, y, z]`
 - `rotation: number` (radians)
 
 **RoofSegmentNode** (child of RoofNode -- holds actual geometry):
+
 - `roofType: 'hip' | 'gable' | 'shed' | 'gambrel' | 'dutch' | 'mansard' | 'flat'`
 - `position: [x, y, z]`
 - `rotation: number`
@@ -171,6 +181,7 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 - `shingleThickness: number` (default 0.05)
 
 **ItemNode (furniture/fixtures):**
+
 - `position: [x, y, z]`
 - `rotation: [x, y, z]`
 - `scale: [x, y, z]`
@@ -180,6 +191,7 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 - `side?: 'front' | 'back'`
 
 **WindowNode** (must be child of a WallNode -- parentId = wallId):
+
 - `position: [x, y, z]` -- wall-local coordinates where x = distance along wall from center, y = height of window center
 - `rotation: [x, y, z]`
 - `wallId: string` -- the wall this window is on (MUST match parentId)
@@ -197,6 +209,7 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 - `sillThickness: number` (default 0.03)
 
 **DoorNode** (must be child of a WallNode -- parentId = wallId):
+
 - `position: [x, y, z]` -- wall-local coordinates where x = distance along wall from center, y = height of door center
 - `rotation: [x, y, z]`
 - `wallId: string` -- the wall this door is on (MUST match parentId)
@@ -219,6 +232,7 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 - `panicBarHeight: number` (default 1.0)
 
 **ScanNode:**
+
 - `url: string`
 - `position: [x, y, z]`
 - `rotation: [x, y, z]`
@@ -226,6 +240,7 @@ Every command is a JSON message with a `cmd` field and a unique `id` for request
 - `opacity: number` (0-100)
 
 **GuideNode:**
+
 - `url: string`
 - `position: [x, y, z]`
 - `rotation: [x, y, z]`
@@ -311,6 +326,7 @@ graph.add_edge("furnisher", END)
 **Input:** `state.prompt`
 
 **Output:** `state.architect_spec` -- JSON with:
+
 - `style` (modern, traditional, etc.)
 - `floors` count
 - `levels[]` each with `rooms[]` containing:
@@ -332,6 +348,7 @@ graph.add_edge("furnisher", END)
 **Input:** `state.architect_spec.levels[current_floor_index]`
 
 **Output:** Appends to `state.floor_plans[]`:
+
 ```json
 {
   "level_index": 0,
@@ -360,9 +377,11 @@ graph.add_edge("furnisher", END)
 ```
 
 **Tools:**
+
 - `read_state()` -- reads current editor state to avoid conflicts with already-built floors
 
 **Constraints:**
+
 - All coordinates in meters, aligned to 0.5m grid
 - Walls must form closed loops for exterior
 - Interior walls connect to exterior walls
@@ -377,11 +396,13 @@ graph.add_edge("furnisher", END)
 **Input:** `state.floor_plans[current_floor_index]`
 
 **Output:**
+
 - Appends created node IDs to `state.built_node_ids[]`
 - Appends wall ID mapping to `state.wall_id_map[floor_index]`
 - **Increments `state.current_floor_index` by 1**
 
 **Tools (LangChain @tool functions, each sends WebSocket command):**
+
 - `read_state() -> dict` -- read current scene to find existing building/level IDs
 - `create_level(building_id, level_number) -> level_id`
 - `create_wall(level_id, start, end, thickness, height) -> wall_id`
@@ -398,6 +419,7 @@ graph.add_edge("furnisher", END)
 - `undo()` -- rollback on failure
 
 **Execution order for each floor:**
+
 1. Read state to find existing building ID (reuse default from `loadScene()`)
 2. Create level (reuse existing level-0 if first floor)
 3. Create slab
@@ -414,6 +436,7 @@ graph.add_edge("furnisher", END)
 **Error handling:** If an API call fails mid-floor, call `undo()` repeatedly to rollback partial work, log error, and continue to next floor.
 
 **Default scene handling:** When the editor starts, `loadScene()` auto-creates a default Site > Building > Level(0) hierarchy. The Builder MUST:
+
 - On first floor: read state to find the existing building ID and level-0 ID, reuse them
 - On subsequent floors: create new Level nodes under the existing building
 
@@ -426,6 +449,7 @@ graph.add_edge("furnisher", END)
 **Output:** Item node IDs added to `state.built_node_ids`
 
 **Tools:**
+
 - `read_zones() -> list[zone]` -- get all zones with names and polygons
 - `read_available_assets(category) -> list[asset]` -- query catalog via `read_assets` command
 - `create_item(level_id, asset, position, rotation) -> item_id`
@@ -435,6 +459,7 @@ graph.add_edge("furnisher", END)
 - `read_state() -> dict` -- verify placements
 
 **Room-type furniture mapping (built into system prompt):**
+
 - bedroom: bed, nightstand(s), wardrobe
 - living: sofa, coffee table, TV unit, armchair
 - kitchen: dining table, chairs, island/counter
@@ -472,6 +497,7 @@ python -m architect \
 ### Supported Models
 
 Any model supported by LangChain:
+
 - `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-haiku-4-5` (Anthropic)
 - `gpt-4o`, `gpt-4.1` (OpenAI)
 - Others via LangChain model registry
@@ -547,6 +573,7 @@ apps/editor/
 ### BridgeProvider
 
 React component mounted at app root. On mount:
+
 1. Starts WebSocket server on `ws://localhost:3100`
 2. Accepts connections from Python client
 3. Parses incoming JSON commands
@@ -589,6 +616,7 @@ export function handleCommand(cmd: any): any {
 ## Dependencies
 
 ### Python (architectbot)
+
 - `langchain-core` -- base abstractions
 - `langgraph` -- state machine orchestration
 - `langchain-anthropic` -- Claude models
@@ -598,6 +626,7 @@ export function handleCommand(cmd: any): any {
 - `rich` -- terminal output formatting
 
 ### Editor (bridge only)
+
 - `ws` or built-in WebSocket -- for WebSocket server in browser context
 - No other new dependencies. Bridge uses existing Zustand stores and catalog data.
 
